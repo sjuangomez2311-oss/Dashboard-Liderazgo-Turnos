@@ -50,231 +50,223 @@
             overflow: hidden;
         }
 
-        /* HEADER Y CONTROLES */
+        /* HEADER SUPERIOR */
         .top-bar {
             background: var(--bg-panel);
-            padding: 15px 20px;
+            padding: 10px 20px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             z-index: 10;
         }
 
-        .title-area h1 { font-size: 18px; color: var(--text-dark); margin-bottom: 4px; }
-        .title-area p { font-size: 12px; color: var(--text-muted); }
+        .title-area h1 { font-size: 18px; color: var(--text-dark); margin-bottom: 2px; }
+        .title-area p { font-size: 11px; color: var(--text-muted); font-weight: 600;}
 
-        .controls { display: flex; gap: 10px; align-items: center; }
+        .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         
         .btn {
             background: #2563eb; color: white; border: none;
-            padding: 8px 16px; border-radius: 6px; font-weight: 600;
-            cursor: pointer; font-size: 13px;
+            padding: 6px 12px; border-radius: 6px; font-weight: 600;
+            cursor: pointer; font-size: 12px;
             display: flex; align-items: center; gap: 6px;
+            transition: 0.2s;
         }
         .btn:hover { background: #1d4ed8; }
         .btn-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border-color); }
         .btn-outline:hover { background: var(--bg-main); }
-        .btn-icon { padding: 8px; border-radius: 50%; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark); cursor: pointer; }
+        .btn-icon { padding: 6px; border-radius: 6px; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark); cursor: pointer; }
         .btn-icon:hover { background: var(--bg-main); }
+        .btn-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .btn-danger:hover { background: #fca5a5; }
 
         #fileInput { display: none; }
+
+        /* NUEVA BARRA DE FILTROS GTR */
+        .filter-bar {
+            background: var(--bg-main);
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.02);
+            z-index: 9;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-panel);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .segment-select, .gtr-input {
+            background: transparent;
+            color: var(--text-dark);
+            border: none;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .gtr-input[type="time"] { cursor: text; }
+
+        .search-box {
+            display: flex; align-items: center; background: var(--bg-panel);
+            border: 1px solid var(--border-color); border-radius: 6px;
+            padding: 2px 8px;
+            flex-grow: 1;
+            max-width: 200px;
+        }
+        .search-box input { border: none; outline: none; padding: 4px; font-size: 12px; width: 100%; background: transparent; color: var(--text-dark); }
+
+        .checkbox-container {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 12px; font-weight: 600; color: var(--text-dark);
+            cursor: pointer;
+        }
 
         /* LEYENDA Y KPI STATS */
         .header-bottom {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
+            padding: 8px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
+            z-index: 8;
         }
-        .legend { display: flex; gap: 15px; font-size: 12px; font-weight: 600; }
-        .legend-item { display: flex; align-items: center; gap: 5px; }
-        .box-color { width: 12px; height: 12px; border-radius: 3px; }
+        .legend { display: flex; gap: 12px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .box-color { width: 10px; height: 10px; border-radius: 3px; }
         .bg-con { background: var(--c-conexion); border: 1px solid var(--c-conexion-border); }
         .bg-alm { background: var(--c-almuerzo); }
         .bg-des { background: var(--c-descanso); }
+        .bg-nov { background: #fca5a5; }
 
-        .live-stats { display: flex; gap: 10px; }
+        .live-stats { display: flex; gap: 8px; }
         .stat-badge {
-            display: flex; align-items: center; gap: 6px; padding: 4px 10px; 
-            border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; gap: 4px; padding: 3px 8px; 
+            border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer;
             border: 1px solid var(--border-color); background: var(--bg-main); transition: 0.2s;
         }
         .stat-badge:hover { filter: brightness(0.9); }
         .stat-badge.active { outline: 2px solid #2563eb; }
 
-        /* GANTT CHART (Estructura Scrollable) */
+        /* GANTT CHART */
         .gantt-wrapper {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            background: var(--bg-panel);
-            margin: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; flex: 1; overflow: hidden;
+            background: var(--bg-panel); margin: 15px; border-radius: 8px;
+            border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
 
-        /* Panel Izquierdo (Nombres) */
+        /* Panel Izquierdo */
         .gantt-left {
-            width: 250px;
-            flex-shrink: 0;
-            border-right: 2px solid var(--border-color);
-            background: var(--bg-panel);
-            z-index: 20;
-            display: flex;
-            flex-direction: column;
+            width: 250px; flex-shrink: 0; border-right: 2px solid var(--border-color);
+            background: var(--bg-panel); z-index: 20; display: flex; flex-direction: column;
         }
 
         .gantt-header-cell {
-            height: 40px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            font-weight: 700;
-            font-size: 12px;
-            background: var(--bg-main);
-            color: var(--text-muted);
-            flex-shrink: 0;
+            height: 40px; border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; padding: 0 15px;
+            font-weight: 700; font-size: 12px; background: var(--bg-main);
+            color: var(--text-muted); flex-shrink: 0; justify-content: space-between;
         }
 
         #agent-names-container {
-            overflow: hidden; /* El scroll lo controla JS para sincronizar */
-            flex: 1;
+            overflow-y: auto; overflow-x: hidden; flex: 1; padding-bottom: 20px; 
         }
+        #agent-names-container::-webkit-scrollbar { display: none; }
+        #agent-names-container { -ms-overflow-style: none; scrollbar-width: none; }
 
         .agent-row-label {
-            height: var(--row-height);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            height: var(--row-height); border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; padding: 0 15px;
+            font-size: 12px; font-weight: 600; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* Panel Derecho (Línea de Tiempo) */
+        /* Panel Derecho */
         .gantt-right {
-            flex: 1;
-            overflow-x: auto;
-            overflow-y: auto; /* SCROLL VERTICAL HABILITADO */
-            position: relative;
-            display: flex;
-            flex-direction: column;
+            flex: 1; overflow-x: auto; overflow-y: auto; 
+            position: relative; display: flex; flex-direction: column;
         }
 
         .gantt-grid {
-            position: absolute;
-            top: 40px; left: 0; right: 0; bottom: 0;
+            position: absolute; top: 40px; left: 0; right: 0; bottom: 0;
             background-size: var(--gantt-hour-width) 100%;
             background-image: linear-gradient(to right, var(--bg-main) 1px, transparent 1px);
-            z-index: 0;
-            height: 100%;
-            min-height: max-content;
+            z-index: 0; height: 100%; min-height: max-content;
+        }
+
+        .hour-highlight {
+            position: absolute; top: 40px; bottom: 0; width: 60px; 
+            background: rgba(37, 99, 235, 0.1); border-left: 1px solid rgba(37, 99, 235, 0.4);
+            border-right: 1px solid rgba(37, 99, 235, 0.4); z-index: 0; display: none;
+            pointer-events: none; height: 100%;
         }
 
         .time-header-row {
-            display: flex;
-            height: 40px;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--bg-main);
-            width: max-content;
-            position: sticky;
-            top: 0;
-            z-index: 50; /* Header pegajoso arriba */
+            display: flex; height: 40px; border-bottom: 1px solid var(--border-color);
+            background: var(--bg-main); width: max-content; position: sticky; top: 0; z-index: 50; 
         }
 
         .time-slot {
-            width: var(--gantt-hour-width);
-            flex-shrink: 0;
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 600;
-            padding-left: 4px;
-            padding-top: 10px;
-            border-left: 1px solid var(--border-color);
+            width: var(--gantt-hour-width); flex-shrink: 0; font-size: 11px;
+            color: var(--text-muted); font-weight: 600; padding-left: 4px; padding-top: 10px;
+            border-left: 1px solid var(--border-color); cursor: pointer; transition: 0.2s;
         }
 
+        .time-slot:hover { background-color: rgba(37, 99, 235, 0.2); }
+        .time-slot.active-hour { background-color: #2563eb; color: white; border-color: #1d4ed8;}
+
         .gantt-rows-container {
-            position: relative;
-            width: 1440px; /* 24 horas */
-            z-index: 1;
+            position: relative; width: 1440px; z-index: 1; padding-bottom: 20px;
         }
 
         .gantt-row {
-            height: var(--row-height);
-            border-bottom: 1px solid var(--border-color);
-            position: relative;
+            height: var(--row-height); border-bottom: 1px solid var(--border-color); position: relative;
         }
 
-        /* Bloques de turnos */
         .shift-block {
-            position: absolute;
-            height: 28px;
-            top: 6px;
-            border-radius: 4px;
+            position: absolute; height: 28px; top: 6px; border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 700; overflow: hidden;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            font-size: 10px; font-weight: 700; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .b-conexion { background: var(--c-conexion); border: 1px solid var(--c-conexion-border); color: #166534; z-index: 1; }
         .b-almuerzo { background: var(--c-almuerzo); color: #713f12; z-index: 2; border: 1px solid #ca8a04; }
         .b-descanso { background: var(--c-descanso); color: #0c4a6e; z-index: 2; border: 1px solid #0284c7; }
+        .b-novedad { background: #fca5a5; color: #7f1d1d; z-index: 3; border: 1px solid #ef4444; }
 
         .current-time-line {
-            position: absolute;
-            top: 0; bottom: 0; width: 2px;
-            background-color: #ef4444; z-index: 45; pointer-events: none;
-            height: 100%; min-height: max-content;
+            position: absolute; top: 0; bottom: 0; width: 2px;
+            background-color: #ef4444; z-index: 45; pointer-events: none; height: 100%; min-height: max-content;
         }
         .current-time-line::after {
-            content: ''; position: absolute;
-            top: 35px; left: -4px;
+            content: ''; position: absolute; top: 35px; left: -4px;
             width: 10px; height: 10px; background: #ef4444; border-radius: 50%;
         }
 
-        /* MODALES Y FILTROS */
+        /* MODALES Y UTILIDADES */
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center;
         }
         .modal-content {
-            background: var(--bg-panel); padding: 20px; border-radius: 8px; width: 600px;
+            background: var(--bg-panel); padding: 20px; border-radius: 8px; width: 500px;
             display: flex; flex-direction: column; gap: 15px; color: var(--text-dark);
         }
         
-        .search-box {
-            display: flex; align-items: center; background: var(--bg-main);
-            border: 1px solid var(--border-color); border-radius: 6px;
-            padding: 2px 10px;
-        }
-        .search-box input { border: none; outline: none; padding: 6px; font-size: 13px; width: 140px; background: transparent; color: var(--text-dark); }
-        
-        .segment-select {
-            background: var(--bg-main);
-            color: var(--text-dark);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 13px;
-            outline: none;
-            cursor: pointer;
-            max-width: 180px;
-        }
-
-        .checkbox-container {
-            display: flex; align-items: center; gap: 5px;
-            font-size: 12px; font-weight: 600; color: var(--text-muted);
-            cursor: pointer; margin-right: 5px;
-        }
-
-        .b-novedad { background: #fca5a5; color: #7f1d1d; z-index: 3; border: 1px solid #ef4444; }
-        .bg-nov { background: #fca5a5; }
-
         .add-btn {
             background: none; border: none; color: #2563eb; cursor: pointer;
             margin-left: auto; display: flex; align-items: center; padding: 4px; border-radius: 4px;
@@ -302,43 +294,67 @@
         </div>
         
         <div class="controls">
-            <!-- FILTRO CHECKBOX: Ocultar Descansos -->
-            <label class="checkbox-container" title="Ocultar agentes que no operan hoy">
-                <input type="checkbox" id="hideOffDays" onchange="applyFilters()" checked>
-                Ocultar descansos
-            </label>
-
-            <!-- FILTRO DE SEGMENTOS -->
-            <select class="segment-select" id="segmentFilter" onchange="applyFilters()">
-                <option value="all">Todos los segmentos</option>
-            </select>
-
-            <div class="search-box">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--text-muted)"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" id="searchInput" placeholder="Buscar asesor..." onkeyup="applyFilters()">
-            </div>
-            
-            <button class="btn-icon" onclick="exportCSV()" title="Exportar GTR a Excel">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            <button class="btn btn-outline" onclick="exportCSV()" title="Exportar Vista Actual a Excel">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Exportar GTR
             </button>
-            <button class="btn-icon" onclick="scrollToNow()" title="Ir a la hora actual">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+            <button class="btn btn-outline" onclick="scrollToNow()" title="Ir a la hora actual">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg> Reloj
             </button>
-            <button class="btn-icon" onclick="toggleDarkMode()" title="Cambiar Tema">
-                <svg id="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+            <button class="btn-icon" onclick="toggleDarkMode()" title="Cambiar Tema Oscuro/Claro">
+                <svg id="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
             </button>
-            
-            <button class="btn btn-outline" onclick="openModal('csvModal')" title="Pegar Excel manual (Respaldo)">
-                Pegar Excel
-            </button>
-
-            <!-- BOTÓN PARA SUBIR ARCHIVO -->
+            <button class="btn btn-outline" onclick="openModal('csvModal')" title="Pegar tabla de Excel (Plan B)">Pegar Excel</button>
             <input type="file" id="fileInput" accept=".csv, .txt, .xlsx, .xls" />
-            <button class="btn" onclick="document.getElementById('fileInput').click()">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Subir Archivo
-            </button>
+            <button class="btn" onclick="document.getElementById('fileInput').click()">Subir Archivo de Malla</button>
         </div>
+    </div>
+
+    <!-- NUEVA BARRA DE FILTROS GTR -->
+    <div class="filter-bar">
+        <!-- Búsqueda General -->
+        <div class="search-box">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="var(--text-muted)"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="text" id="searchInput" placeholder="Buscar asesor..." onkeyup="applyFilters()">
+        </div>
+
+        <!-- Filtros Estructurales -->
+        <div class="filter-group">
+            <label>Líder:</label>
+            <select class="segment-select" id="segmentFilter" onchange="applyFilters()">
+                <option value="all">Todos</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>PCRC:</label>
+            <select class="segment-select" id="pcrcFilter" onchange="applyFilters()">
+                <option value="all">Todos</option>
+            </select>
+        </div>
+
+        <!-- FILTROS AVANZADOS GTR -->
+        <div class="filter-group" style="border-color: #3b82f6; background: rgba(59, 130, 246, 0.05);">
+            <label style="color: #2563eb;">Novedad:</label>
+            <select class="segment-select" id="gtrEventFilter" onchange="applyFilters()">
+                <option value="all">Cualquier Estado</option>
+                <option value="inicio_turno">▶ Inician Turno</option>
+                <option value="fin_turno">⏹ Finalizan Turno</option>
+                <option value="conexion">🟢 En Conexión</option>
+                <option value="almuerzo">🟡 En Almuerzo</option>
+                <option value="descanso">🔵 En Descanso</option>
+                <option value="novedad">🔴 En Novedad GTR</option>
+            </select>
+            <label style="color: #2563eb; border-left: 1px solid var(--border-color); padding-left: 6px; margin-left: 2px;">Hora:</label>
+            <input type="time" class="gtr-input" id="gtrTimeFilter" onchange="applyFilters()">
+        </div>
+
+        <label class="checkbox-container" title="Ocultar a quienes tienen día libre">
+            <input type="checkbox" id="hideOffDays" onchange="applyFilters()" checked>
+            Ocultar Libres
+        </label>
+
+        <button class="btn btn-danger btn-icon" onclick="clearFilters()" title="Limpiar todos los filtros" style="padding: 4px 8px; font-size: 11px;">
+            Limpiar Filtros
+        </button>
     </div>
 
     <div class="header-bottom">
@@ -350,17 +366,17 @@
         </div>
         
         <div class="live-stats">
-            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center;">EN VIVO:</span>
-            <div class="stat-badge" onclick="toggleStatusFilter('conexion')" id="badge-conexion" title="Clic para filtrar">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: flex; align-items: center;">KPIs EN VIVO:</span>
+            <div class="stat-badge" onclick="toggleStatusFilter('conexion')" id="badge-conexion" title="Filtrar conectados">
                 🟢 <span id="stat-con">0</span> Conectados
             </div>
-            <div class="stat-badge" onclick="toggleStatusFilter('almuerzo')" id="badge-almuerzo" title="Clic para filtrar">
+            <div class="stat-badge" onclick="toggleStatusFilter('almuerzo')" id="badge-almuerzo" title="Filtrar almuerzos">
                 🟡 <span id="stat-alm">0</span> Almuerzo
             </div>
-            <div class="stat-badge" onclick="toggleStatusFilter('descanso')" id="badge-descanso" title="Clic para filtrar">
+            <div class="stat-badge" onclick="toggleStatusFilter('descanso')" id="badge-descanso" title="Filtrar descansos">
                 🔵 <span id="stat-des">0</span> Descanso
             </div>
-            <div class="stat-badge" onclick="toggleStatusFilter('novedad')" id="badge-novedad" title="Clic para filtrar">
+            <div class="stat-badge" onclick="toggleStatusFilter('novedad')" id="badge-novedad" title="Filtrar novedades">
                 🔴 <span id="stat-nov">0</span> Novedad
             </div>
         </div>
@@ -368,32 +384,35 @@
 
     <div class="gantt-wrapper">
         <div class="gantt-left">
-            <div class="gantt-header-cell">Asesores (<span id="total-agents">0</span>)</div>
+            <div class="gantt-header-cell">
+                <span>Asesores</span>
+                <span id="agent-count-badge" style="background: var(--text-dark); color: var(--bg-panel); padding: 2px 6px; border-radius: 10px; font-size: 10px;">0/0</span>
+            </div>
             <div id="agent-names-container">
                 <!-- Se llena con JS -->
             </div>
         </div>
 
         <div class="gantt-right" id="gantt-scroll-area">
-            <div class="gantt-grid"></div>
+            <div class="gantt-grid" id="gantt-grid"></div>
+            <div class="hour-highlight" id="hour-highlight"></div>
+            
             <div class="time-header-row" id="time-header">
                 <!-- Se llena con JS (00:00 a 23:00) -->
             </div>
-            <div class="gantt-rows-container">
+            <div class="gantt-rows-container" id="gantt-blocks-container">
                 <div class="current-time-line" id="now-line"></div>
-                <div id="gantt-blocks-container">
-                    <!-- Se llena con JS -->
-                </div>
+                <!-- Las filas van aquí -->
             </div>
         </div>
     </div>
 
-    <!-- MODAL CARGAR DATOS (Respaldo) -->
+    <!-- MODALES (Ocultos) -->
     <div class="modal" id="csvModal">
         <div class="modal-content">
-            <h2 style="font-size: 16px;">Pegar datos del Excel (Exportación TEO)</h2>
+            <h2 style="font-size: 16px;">Pegar datos manuales</h2>
             <p style="font-size: 12px; color: var(--text-muted);">Abre tu archivo Excel, selecciona toda la tabla (Ctrl+E), cópiala (Ctrl+C) y pégala aquí (Ctrl+V).</p>
-            <textarea id="csvInput" placeholder="id_tur_turnos_usuarios,inicio turno,cedula..." style="height: 150px;"></textarea>
+            <textarea id="csvInput" placeholder="id_tur_turnos_usuarios,inicio turno..." style="height: 150px;"></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button class="btn btn-outline" onclick="closeModal('csvModal')">Cancelar</button>
                 <button class="btn" onclick="processPastedData()">Procesar Datos</button>
@@ -401,35 +420,25 @@
         </div>
     </div>
 
-    <!-- MODAL GESTIÓN EN TIEMPO REAL (GTR) -->
     <div class="modal" id="eventModal">
         <div class="modal-content" style="width: 400px;">
             <h2 style="font-size: 16px;" id="eventModalTitle">Modificar Evento</h2>
             <p style="font-size: 12px; color: var(--text-muted);" id="eventModalSubtitle">Agente: ...</p>
-            
             <input type="hidden" id="editAgentId">
             <input type="hidden" id="editEventId">
-
             <div class="form-group">
                 <label>Tipo de Evento</label>
                 <select id="editType">
                     <option value="conexion">Conexión (Turno Principal)</option>
                     <option value="almuerzo">Almuerzo</option>
                     <option value="descanso">Descanso</option>
-                    <option value="novedad">Novedad GTR (Feedback, Daño, etc.)</option>
+                    <option value="novedad">Novedad GTR</option>
                 </select>
             </div>
             <div style="display: flex; gap: 10px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Hora Inicio</label>
-                    <input type="time" id="editStart">
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Hora Fin</label>
-                    <input type="time" id="editEnd">
-                </div>
+                <div class="form-group" style="flex: 1;"><label>Hora Inicio</label><input type="time" id="editStart"></div>
+                <div class="form-group" style="flex: 1;"><label>Hora Fin</label><input type="time" id="editEnd"></div>
             </div>
-            
             <div style="display: flex; justify-content: space-between; margin-top: 10px;">
                 <button class="btn btn-outline" style="color: #ef4444; border-color: #ef4444;" id="btnDeleteEvent" onclick="deleteEvent()">Eliminar</button>
                 <div style="display: flex; gap: 10px;">
@@ -447,18 +456,14 @@
         let filteredAgents = [];
         let currentStatusFilter = null; 
 
-        // Datos de ejemplo por si no hay nada guardado en memoria
         const defaultCSV = `id_tur_turnos_usuarios,inicio turno,cedula,usuario red,pcrc,ceco,nombre asesor,nombre lider,inicio conexion,fin conexion,inicio desayuno,fin desayuno,inicio almuerzo,fin almuerzo,inicio cena,fin cena,inicio alimentacion1,fin alimentacion1,inicio alimentacion2,fin alimentacion2,descanso1,descanso2,descanso3,descanso4,capacitacion1,capacitacion2,capacitacion3,capacitacion4,Descanso,estado DP\n163354092,2026-05-21,1028662441,yenny.carreno,459612-4,459612,YENNY CARREÑO UPEGUI,NESTOR VALENCIA,09:00:00,17:00:00,,,13:15:00,13:45:00,,,10:30:00,10:45:00,15:45:00,16:00:00,,,,,,,,,Turno programado,Retiro\n163353728,2026-05-21,1012445050,yenyfer.amaya,459612-4,459612,YENYFER AMAYA SIERRA,NESTOR VALENCIA,09:00:00,17:00:00,,,12:30:00,13:00:00,,,10:15:00,10:30:00,15:00:00,15:15:00,,,,,,,,,Turno programado,Retiro\n163353826,2026-05-21,1014271228,andrea.pacheco,459612-1,459612,ANDREA PACHECO RODRIGUEZ,JUAN HERNANDEZ,08:00:00,16:00:00,,,12:00:00,13:00:00,,,10:00:00,10:15:00,14:00:00,14:15:00,,,,,,,,,Turno programado,En gestión`;
 
         // ==========================================================
-        // AUTO-GUARDADO (Local Storage)
+        // AUTO-GUARDADO
         // ==========================================================
         function saveToLocalStorage() {
-            try {
-                localStorage.setItem('gtr_agents_data', JSON.stringify(globalAgents));
-            } catch(e) {
-                console.warn("No se pudo guardar en memoria local.", e);
-            }
+            try { localStorage.setItem('gtr_agents_data', JSON.stringify(globalAgents)); } 
+            catch(e) { console.warn("No se pudo guardar.", e); }
         }
 
         function loadFromLocalStorage() {
@@ -467,44 +472,43 @@
                 if (savedData) {
                     globalAgents = JSON.parse(savedData);
                     filteredAgents = [...globalAgents];
-                    
-                    buildSegmentFilter();
-                    document.getElementById('searchInput').value = '';
-                    document.getElementById('segmentFilter').value = 'all';
-                    currentStatusFilter = null;
-                    document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
-                    
-                    applyFilters();
-                    calculateLiveStats();
+                    buildFilters();
+                    clearFilters(false);
                     return true;
                 }
-            } catch(e) {
-                console.warn("Error al cargar la memoria local.", e);
-            }
+            } catch(e) {}
             return false;
         }
 
         // ==========================================================
-        // SINCRONIZACIÓN DE SCROLL
+        // SINCRONIZACIÓN DE SCROLL PERFECTA
         // ==========================================================
         const scrollArea = document.getElementById('gantt-scroll-area');
         const namesContainer = document.getElementById('agent-names-container');
+        let isSyncingLeft = false; let isSyncingRight = false;
+
         scrollArea.addEventListener('scroll', function() {
-            namesContainer.scrollTop = scrollArea.scrollTop;
+            if (!isSyncingLeft) { isSyncingRight = true; namesContainer.scrollTop = scrollArea.scrollTop; }
+            isSyncingLeft = false;
         });
 
-        // Utilidades
+        namesContainer.addEventListener('scroll', function() {
+            if (!isSyncingRight) { isSyncingLeft = true; scrollArea.scrollTop = namesContainer.scrollTop; }
+            isSyncingRight = false;
+        });
+
+        // ==========================================================
+        // UTILIDADES Y RENDER DE ENCABEZADO
+        // ==========================================================
         function timeToPixels(timeStr) {
             if(!timeStr || timeStr.trim() === '') return null;
-            const parts = timeStr.split(':');
-            if(parts.length < 2) return null;
+            const parts = timeStr.split(':'); if(parts.length < 2) return null;
             return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
         }
 
         function pixelsToTime(px) {
             if(px === null || px === undefined) return '';
-            let h = Math.floor(px / 60);
-            let m = px % 60;
+            let h = Math.floor(px / 60); let m = px % 60;
             if(h >= 24) h -= 24; 
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         }
@@ -517,32 +521,26 @@
             for(let i=0; i<24; i++) {
                 const div = document.createElement('div');
                 div.className = 'time-slot';
+                div.id = `time-slot-${i}`;
                 div.textContent = `${i.toString().padStart(2, '0')}:00`;
+                div.title = "Filtrar por esta hora";
+                div.onclick = () => selectHourFromHeader(i);
                 header.appendChild(div);
             }
         }
 
         // ==========================================================
-        // LECTOR DE ARCHIVOS
+        // LECTOR DE ARCHIVOS (CSV y XLSX)
         // ==========================================================
         document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
+            const file = e.target.files[0]; if (!file) return;
             if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-                if (typeof XLSX === 'undefined') {
-                    alert("La red corporativa bloqueó el lector automático de Excel.\n\nPor favor, abre tu archivo, cópialo completo (Ctrl+E y Ctrl+C) y utiliza el botón 'Pegar Excel' como alternativa.");
-                    e.target.value = '';
-                    return;
-                }
-                
+                if (typeof XLSX === 'undefined') { alert("Usa el botón 'Pegar Excel'."); e.target.value = ''; return; }
                 const reader = new FileReader();
                 reader.onload = function(evt) {
                     const data = new Uint8Array(evt.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.SheetNames[0];
-                    const csvData = XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheet]);
-                    processCSVData(csvData);
+                    processCSVData(XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]));
                 };
                 reader.readAsArrayBuffer(file);
             } else {
@@ -555,78 +553,47 @@
 
         function processPastedData() {
             const text = document.getElementById('csvInput').value;
-            if(text.trim() === '') { alert("Por favor pega los datos primero."); return; }
-            processCSVData(text);
-            closeModal('csvModal');
-            document.getElementById('csvInput').value = ''; 
+            if(text.trim() === '') { alert("Pega los datos primero."); return; }
+            processCSVData(text); closeModal('csvModal'); document.getElementById('csvInput').value = ''; 
         }
 
         function parseCSV(text) {
-            if (text.startsWith('PK')) {
-                alert("Pegaste el código binario de un Excel. Debes copiar el texto de las celdas, no el archivo.");
-                return globalAgents;
-            }
+            if (text.startsWith('PK')) { alert("Copia el texto de las celdas, no el archivo binario."); return globalAgents; }
 
-            const lines = text.trim().split('\n');
-            if(lines.length < 2) return globalAgents;
+            const lines = text.trim().split('\n'); if(lines.length < 2) return globalAgents;
             
-            const firstLine = lines[0];
-            let sep = ',';
-            if (firstLine.indexOf(';') !== -1) sep = ';';
-            if (firstLine.indexOf('\t') !== -1) sep = '\t';
-
+            const firstLine = lines[0]; let sep = ',';
+            if (firstLine.indexOf(';') !== -1) sep = ';'; if (firstLine.indexOf('\t') !== -1) sep = '\t';
             const headers = firstLine.toLowerCase().replace(/\r/g, '').split(sep);
             
             const iName = headers.indexOf('nombre asesor');
             const iLider = headers.indexOf('nombre lider'); 
-            const iConIn = headers.indexOf('inicio conexion');
-            const iConOut = headers.indexOf('fin conexion');
-            const iAlmIn = headers.indexOf('inicio almuerzo');
-            const iAlmOut = headers.indexOf('fin almuerzo');
-            const iBreak1In = headers.indexOf('inicio alimentacion1');
-            const iBreak1Out = headers.indexOf('fin alimentacion1');
-            const iBreak2In = headers.indexOf('inicio alimentacion2');
-            const iBreak2Out = headers.indexOf('fin alimentacion2');
+            const iPcrc = headers.indexOf('pcrc'); 
+            const iConIn = headers.indexOf('inicio conexion'); const iConOut = headers.indexOf('fin conexion');
+            const iAlmIn = headers.indexOf('inicio almuerzo'); const iAlmOut = headers.indexOf('fin almuerzo');
+            const iBreak1In = headers.indexOf('inicio alimentacion1'); const iBreak1Out = headers.indexOf('fin alimentacion1');
+            const iBreak2In = headers.indexOf('inicio alimentacion2'); const iBreak2Out = headers.indexOf('fin alimentacion2');
 
-            if (iName === -1 || iConIn === -1) {
-                alert("Columnas incorrectas. Asegúrate de copiar desde el Excel TEO.");
-                return globalAgents;
-            }
+            if (iName === -1 || iConIn === -1) { alert("Columnas incorrectas."); return globalAgents; }
 
             const agents = [];
 
             for(let i=1; i<lines.length; i++) {
-                const cols = lines[i].replace(/\r/g, '').split(sep);
-                if(cols.length <= iName) continue; 
+                const cols = lines[i].replace(/\r/g, '').split(sep); if(cols.length <= iName) continue; 
+                const name = cols[iName] ? cols[iName].replace(/['"]/g, '').trim() : ''; if(!name) continue;
 
-                const name = cols[iName] ? cols[iName].replace(/['"]/g, '').trim() : '';
-                if(!name) continue;
-
-                const shiftStart = cols[iConIn];
-                const shiftEnd = cols[iConOut];
+                const shiftStart = cols[iConIn]; const shiftEnd = cols[iConOut];
                 const liderName = iLider !== -1 && cols[iLider] ? cols[iLider].replace(/['"]/g, '').trim() : "Sin Líder";
+                const pcrcName = iPcrc !== -1 && cols[iPcrc] ? cols[iPcrc].replace(/['"]/g, '').trim() : "Sin PCRC";
                 
-                let startPx = timeToPixels(shiftStart);
-                let endPx = timeToPixels(shiftEnd);
+                let startPx = timeToPixels(shiftStart); let endPx = timeToPixels(shiftEnd);
 
-                if(!shiftStart || !shiftEnd || (shiftStart === '00:00:00' && shiftEnd === '00:00:00')) {
+                if(!shiftStart || !shiftEnd || (shiftStart === '00:00:00' && shiftEnd === '00:00:00') || (shiftStart === '02:00:00' && shiftEnd === '02:15:00')) {
                     startPx = null; endPx = null;
                 }
-                if(shiftStart === '02:00:00' && shiftEnd === '02:15:00') {
-                    startPx = null; endPx = null; 
-                }
+                if(startPx !== null && endPx !== null && endPx < startPx) endPx += (24 * 60);
 
-                if(startPx !== null && endPx !== null && endPx < startPx) {
-                    endPx += (24 * 60);
-                }
-
-                const agentData = {
-                    id: generateId(),
-                    name: name,
-                    lider: liderName,
-                    shift: { type: 'conexion', start: startPx, end: endPx },
-                    events: []
-                };
+                const agentData = { id: generateId(), name: name, lider: liderName, pcrc: pcrcName, shift: { type: 'conexion', start: startPx, end: endPx }, events: [] };
 
                 if(iAlmIn !== -1 && cols[iAlmIn] && cols[iAlmIn] !== '00:00:00') agentData.events.push({ id: generateId(), type: 'almuerzo', start: timeToPixels(cols[iAlmIn]), end: timeToPixels(cols[iAlmOut]) });
                 if(iBreak1In !== -1 && cols[iBreak1In] && cols[iBreak1In] !== '00:00:00') agentData.events.push({ id: generateId(), type: 'descanso', start: timeToPixels(cols[iBreak1In]), end: timeToPixels(cols[iBreak1Out]) });
@@ -637,75 +604,57 @@
             return agents;
         }
 
-        function buildSegmentFilter() {
-            const select = document.getElementById('segmentFilter');
-            const lideres = new Set(globalAgents.map(a => a.lider));
+        function buildFilters() {
+            const selectLider = document.getElementById('segmentFilter');
+            const selectPcrc = document.getElementById('pcrcFilter');
             
-            let html = '<option value="all">Todos los segmentos</option>';
-            Array.from(lideres).sort().forEach(lider => {
-                if (lider) html += `<option value="${lider}">${lider}</option>`;
-            });
-            select.innerHTML = html;
+            let htmlLider = '<option value="all">Todos los Líderes</option>';
+            Array.from(new Set(globalAgents.map(a => a.lider))).sort().forEach(l => { if (l) htmlLider += `<option value="${l}">${l}</option>`; });
+            selectLider.innerHTML = htmlLider;
+
+            let htmlPcrc = '<option value="all">Todos los PCRC</option>';
+            Array.from(new Set(globalAgents.map(a => a.pcrc))).sort().forEach(p => { if (p) htmlPcrc += `<option value="${p}">${p}</option>`; });
+            selectPcrc.innerHTML = htmlPcrc;
         }
 
         function processCSVData(text) {
             if(!text || text.trim() === '') return;
             globalAgents = parseCSV(text);
-            filteredAgents = [...globalAgents];
-            
-            saveToLocalStorage(); // Guardamos en memoria
-
-            buildSegmentFilter(); 
-            document.getElementById('searchInput').value = '';
-            document.getElementById('segmentFilter').value = 'all';
-            currentStatusFilter = null;
-            document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
-            
-            applyFilters();
-            calculateLiveStats();
-            setTimeout(scrollToNow, 300);
+            saveToLocalStorage(); 
+            buildFilters(); 
+            clearFilters(false);
         }
 
         // ==========================================================
-        // FILTROS COMBINADOS
+        // FILTROS AVANZADOS GTR E INTERACTIVOS
         // ==========================================================
-        function applyFilters() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const segment = document.getElementById('segmentFilter').value;
-            const hideOffDays = document.getElementById('hideOffDays').checked; // Checkbox Descansos
-            const now = new Date();
-            const currentMins = (now.getHours() * 60) + now.getMinutes();
+        function clearFilters(render = true) {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('segmentFilter').value = 'all';
+            document.getElementById('pcrcFilter').value = 'all';
+            document.getElementById('gtrEventFilter').value = 'all';
+            document.getElementById('gtrTimeFilter').value = '';
+            document.getElementById('hideOffDays').checked = true;
+            
+            currentStatusFilter = null;
+            document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active-hour'));
+            document.getElementById('hour-highlight').style.display = 'none';
+            
+            if(render) applyFilters();
+        }
 
-            filteredAgents = globalAgents.filter(a => {
-                // Filtro Buscador
-                if (!a.name.toLowerCase().includes(query)) return false;
-
-                // Filtro Segmento
-                if (segment !== 'all' && a.lider !== segment) return false;
-
-                // Filtro Ocultar Días Libres
-                if (hideOffDays && (a.shift.start === null || a.shift.end === null)) return false;
-
-                // Filtro Estado Actual (KPIs)
-                if (currentStatusFilter) {
-                    let agentStatus = 'offline';
-                    
-                    if (a.shift.start !== null && a.shift.end !== null && a.shift.start <= currentMins && currentMins <= a.shift.end) {
-                        agentStatus = 'conexion';
-                    }
-                    
-                    a.events.forEach(ev => {
-                        let evEnd = ev.end;
-                        if(evEnd < ev.start) evEnd += (24*60); 
-                        if (ev.start !== null && ev.start <= currentMins && currentMins <= evEnd) agentStatus = ev.type;
-                    });
-                    
-                    if (agentStatus !== currentStatusFilter) return false;
-                }
-                
-                return true;
-            });
-            renderGantt(filteredAgents);
+        function selectHourFromHeader(hour) {
+            const timeInput = document.getElementById('gtrTimeFilter');
+            const currentVal = timeInput.value;
+            const targetVal = `${String(hour).padStart(2, '0')}:00`;
+            
+            if (currentVal === targetVal) {
+                timeInput.value = ''; // Apagar filtro si se clicó la misma hora
+            } else {
+                timeInput.value = targetVal; // Encender filtro
+            }
+            applyFilters();
         }
 
         function toggleStatusFilter(status) {
@@ -719,28 +668,111 @@
             applyFilters();
         }
 
-        function calculateLiveStats() {
-            const now = new Date();
-            const currentMins = (now.getHours() * 60) + now.getMinutes();
-            let counts = { conexion: 0, almuerzo: 0, descanso: 0, novedad: 0 };
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const segment = document.getElementById('segmentFilter').value;
+            const pcrc = document.getElementById('pcrcFilter').value;
+            const hideOffDays = document.getElementById('hideOffDays').checked; 
             
-            const baseAgents = document.getElementById('segmentFilter').value === 'all' 
-                               ? globalAgents 
-                               : globalAgents.filter(a => a.lider === document.getElementById('segmentFilter').value);
+            // Filtros Avanzados GTR
+            const gtrEvent = document.getElementById('gtrEventFilter').value;
+            const gtrTimeRaw = document.getElementById('gtrTimeFilter').value;
+            const gtrTimeMins = timeToPixels(gtrTimeRaw);
 
-            baseAgents.forEach(a => {
-                let agentStatus = 'offline';
-                
-                if (a.shift.start !== null && a.shift.end !== null && a.shift.start <= currentMins && currentMins <= a.shift.end) {
-                    agentStatus = 'conexion';
+            // Manejo de la interfaz del reloj (Highlight)
+            document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active-hour'));
+            const highlight = document.getElementById('hour-highlight');
+            if (gtrTimeMins !== null) {
+                const h = Math.floor(gtrTimeMins / 60);
+                const el = document.getElementById(`time-slot-${h}`);
+                if (el) el.classList.add('active-hour');
+                highlight.style.left = (gtrTimeMins) + 'px';
+                highlight.style.display = 'block';
+            } else {
+                highlight.style.display = 'none';
+            }
+
+            filteredAgents = globalAgents.filter(a => {
+                if (!a.name.toLowerCase().includes(query)) return false;
+                if (segment !== 'all' && a.lider !== segment) return false;
+                if (pcrc !== 'all' && a.pcrc !== pcrc) return false;
+                if (hideOffDays && (a.shift.start === null || a.shift.end === null)) return false;
+
+                // LOGICA GTR AVANZADA (Evento + Hora)
+                if (gtrEvent !== 'all' || gtrTimeMins !== null) {
+                    let hasGtrMatch = false;
+
+                    // Condiciones para "Inician Turno"
+                    if (gtrEvent === 'inicio_turno' || (gtrEvent === 'all' && gtrTimeMins !== null)) {
+                        if (a.shift.start !== null && (gtrTimeMins === null || a.shift.start === gtrTimeMins)) hasGtrMatch = true;
+                    }
+                    // Condiciones para "Finalizan Turno"
+                    if (gtrEvent === 'fin_turno' || (gtrEvent === 'all' && gtrTimeMins !== null)) {
+                        if (a.shift.end !== null && (gtrTimeMins === null || a.shift.end === gtrTimeMins)) hasGtrMatch = true;
+                    }
+                    // Condiciones para "Conexión" (Activos y NO en break)
+                    if (gtrEvent === 'conexion' || (gtrEvent === 'all' && gtrTimeMins !== null)) {
+                        if (gtrTimeMins === null) {
+                            if (a.shift.start !== null) hasGtrMatch = true; // Cualquiera con turno
+                        } else {
+                            if (a.shift.start !== null && a.shift.start <= gtrTimeMins && gtrTimeMins <= a.shift.end) {
+                                let inOtherEvent = a.events.some(ev => {
+                                    let eE = ev.end < ev.start ? ev.end + 1440 : ev.end;
+                                    return ev.start <= gtrTimeMins && gtrTimeMins <= eE;
+                                });
+                                if (!inOtherEvent) hasGtrMatch = true;
+                            }
+                        }
+                    }
+                    // Condiciones para Eventos (Almuerzo, Descanso, Novedad)
+                    if (['almuerzo', 'descanso', 'novedad'].includes(gtrEvent) || (gtrEvent === 'all' && gtrTimeMins !== null)) {
+                        let matchingEvent = a.events.some(ev => {
+                            if (gtrEvent !== 'all' && ev.type !== gtrEvent) return false;
+                            if (gtrTimeMins === null) return true; // Solo importa el evento
+                            let eE = ev.end < ev.start ? ev.end + 1440 : ev.end;
+                            return (ev.start <= gtrTimeMins && gtrTimeMins <= eE);
+                        });
+                        if (matchingEvent) hasGtrMatch = true;
+                    }
+
+                    if (!hasGtrMatch) return false;
+                }
+
+                // Filtro Estado KPI (Los botones redondos)
+                if (currentStatusFilter) {
+                    let agentStatus = 'offline';
+                    const currentMins = (new Date().getHours() * 60) + new Date().getMinutes();
+                    
+                    if (a.shift.start !== null && a.shift.start <= currentMins && currentMins <= a.shift.end) agentStatus = 'conexion';
+                    
+                    a.events.forEach(ev => {
+                        let evEnd = ev.end < ev.start ? ev.end + 1440 : ev.end; 
+                        if (ev.start <= currentMins && currentMins <= evEnd) agentStatus = ev.type;
+                    });
+                    
+                    if (agentStatus !== currentStatusFilter) return false;
                 }
                 
-                a.events.forEach(ev => {
-                    let evEnd = ev.end;
-                    if(evEnd < ev.start) evEnd += (24*60);
-                    if (ev.start !== null && ev.start <= currentMins && currentMins <= evEnd) agentStatus = ev.type;
-                });
+                return true;
+            });
+            
+            renderGantt(filteredAgents);
+            calculateLiveStats();
+        }
 
+        function calculateLiveStats() {
+            const currentMins = (new Date().getHours() * 60) + new Date().getMinutes();
+            let counts = { conexion: 0, almuerzo: 0, descanso: 0, novedad: 0 };
+            
+            globalAgents.forEach(a => {
+                if(a.shift.start === null) return; // Ignorar libres en contadores base
+                let agentStatus = 'offline';
+                if (a.shift.start <= currentMins && currentMins <= a.shift.end) agentStatus = 'conexion';
+                
+                a.events.forEach(ev => {
+                    let evEnd = ev.end < ev.start ? ev.end + 1440 : ev.end;
+                    if (ev.start <= currentMins && currentMins <= evEnd) agentStatus = ev.type;
+                });
                 if (counts[agentStatus] !== undefined) counts[agentStatus]++;
             });
 
@@ -755,14 +787,22 @@
         // ==========================================================
         function renderGantt(agentsToRender) {
             namesContainer.innerHTML = '';
-            document.getElementById('gantt-blocks-container').innerHTML = '';
-            document.getElementById('total-agents').textContent = agentsToRender.length;
+            
+            // Cuidar de no borrar la línea roja de hora actual
+            const blocksContainer = document.getElementById('gantt-blocks-container');
+            const nowLine = document.getElementById('now-line');
+            blocksContainer.innerHTML = '';
+            blocksContainer.appendChild(nowLine);
+
+            document.getElementById('agent-count-badge').textContent = `${agentsToRender.length} / ${globalAgents.length}`;
 
             agentsToRender.forEach(agent => {
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'agent-row-label';
                 nameDiv.innerHTML = `
-                    <span title="${agent.name} (${agent.lider})">${agent.name}</span>
+                    <div style="flex:1; overflow:hidden; text-overflow:ellipsis;" title="${agent.name} | Líder: ${agent.lider} | PCRC: ${agent.pcrc}">
+                        ${agent.name} <br><span style="font-size: 9px; color: var(--text-muted);">${agent.pcrc}</span>
+                    </div>
                     <button class="add-btn" title="Agregar Novedad GTR" onclick="openEventModal('${agent.id}', 'new')">
                         <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                     </button>
@@ -777,7 +817,7 @@
                     shiftBlock.className = 'shift-block b-conexion';
                     shiftBlock.style.left = `${agent.shift.start}px`;
                     shiftBlock.style.width = `${agent.shift.end - agent.shift.start}px`;
-                    shiftBlock.title = "Clic para editar turno";
+                    shiftBlock.title = "Clic para editar turno base";
                     shiftBlock.onclick = () => openEventModal(agent.id, 'shift');
                     rowDiv.appendChild(shiftBlock);
                 }
@@ -787,15 +827,14 @@
                         const evBlock = document.createElement('div');
                         evBlock.className = `shift-block b-${ev.type}`;
                         evBlock.style.left = `${ev.start}px`;
-                        let width = ev.end - ev.start;
-                        if(width < 0) width += (24*60); 
+                        let width = ev.end - ev.start; if(width < 0) width += (24*60); 
                         evBlock.style.width = `${width}px`;
                         evBlock.title = `Clic para editar ${ev.type}`;
                         evBlock.onclick = (e) => { e.stopPropagation(); openEventModal(agent.id, ev.id); };
                         rowDiv.appendChild(evBlock);
                     }
                 });
-                document.getElementById('gantt-blocks-container').appendChild(rowDiv);
+                blocksContainer.appendChild(rowDiv);
             });
         }
 
@@ -820,8 +859,7 @@
 
             if(eventId === 'new') {
                 document.getElementById('eventModalTitle').textContent = "Nueva Novedad GTR";
-                typeSelect.value = 'novedad';
-                startInput.value = ''; endInput.value = '';
+                typeSelect.value = 'novedad'; startInput.value = ''; endInput.value = '';
                 btnDelete.style.display = 'none'; typeSelect.disabled = false;
             } else if (eventId === 'shift') {
                 document.getElementById('eventModalTitle').textContent = "Editar Turno Base";
@@ -831,8 +869,7 @@
             } else {
                 document.getElementById('eventModalTitle').textContent = "Editar Evento";
                 const ev = agent.events.find(e => e.id === eventId);
-                typeSelect.value = ev.type;
-                startInput.value = pixelsToTime(ev.start); endInput.value = pixelsToTime(ev.end);
+                typeSelect.value = ev.type; startInput.value = pixelsToTime(ev.start); endInput.value = pixelsToTime(ev.end);
                 btnDelete.style.display = 'block'; typeSelect.disabled = false;
             }
             openModal('eventModal');
@@ -850,19 +887,11 @@
 
             const agent = globalAgents.find(a => a.id === agentId);
             
-            if(eventId === 'new') {
-                agent.events.push({ id: generateId(), type: type, start: start, end: end });
-            } else if (eventId === 'shift') {
-                agent.shift.start = start; agent.shift.end = end;
-            } else {
-                const ev = agent.events.find(e => e.id === eventId);
-                ev.type = type; ev.start = start; ev.end = end;
-            }
+            if(eventId === 'new') { agent.events.push({ id: generateId(), type: type, start: start, end: end }); } 
+            else if (eventId === 'shift') { agent.shift.start = start; agent.shift.end = end; } 
+            else { const ev = agent.events.find(e => e.id === eventId); ev.type = type; ev.start = start; ev.end = end; }
 
-            saveToLocalStorage(); // Guardar cambios en memoria
-            closeModal('eventModal');
-            applyFilters();
-            calculateLiveStats();
+            saveToLocalStorage(); closeModal('eventModal'); applyFilters();
         }
 
         function deleteEvent() {
@@ -870,22 +899,19 @@
             const eventId = document.getElementById('editEventId').value;
             const agent = globalAgents.find(a => a.id === agentId);
             agent.events = agent.events.filter(e => e.id !== eventId);
-            
-            saveToLocalStorage(); // Guardar cambios en memoria
-            closeModal('eventModal');
-            applyFilters();
-            calculateLiveStats();
+            saveToLocalStorage(); closeModal('eventModal'); applyFilters();
         }
 
         // ==========================================================
         // UTILIDADES EXTRAS
         // ==========================================================
         function exportCSV() {
-            let csvContent = "Agente,Segmento,Tipo Evento,Hora Inicio,Hora Fin\n";
-            globalAgents.forEach(a => {
-                csvContent += `"${a.name}","${a.lider}",Turno Base,${pixelsToTime(a.shift.start)},${pixelsToTime(a.shift.end)}\n`;
+            let csvContent = "Agente,Segmento,PCRC,Tipo Evento,Hora Inicio,Hora Fin\n";
+            // Se exportan solo los visibles en pantalla para mayor precisión GTR
+            filteredAgents.forEach(a => {
+                csvContent += `"${a.name}","${a.lider}","${a.pcrc}",Turno Base,${pixelsToTime(a.shift.start)},${pixelsToTime(a.shift.end)}\n`;
                 a.events.forEach(ev => {
-                    csvContent += `"${a.name}","${a.lider}",${ev.type.toUpperCase()},${pixelsToTime(ev.start)},${pixelsToTime(ev.end)}\n`;
+                    csvContent += `"${a.name}","${a.lider}","${a.pcrc}",${ev.type.toUpperCase()},${pixelsToTime(ev.start)},${pixelsToTime(ev.end)}\n`;
                 });
             });
             const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -893,10 +919,7 @@
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
             link.setAttribute("download", `GTR_Export_${new Date().toISOString().slice(0,10)}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         function toggleDarkMode() {
@@ -905,11 +928,8 @@
             localStorage.setItem('gtr-darkmode', isDark);
             
             const icon = document.getElementById('theme-icon');
-            if(isDark) {
-                icon.innerHTML = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
-            } else {
-                icon.innerHTML = '<path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8 8h-2v3h2v-3zm-7.45-3.91l1.41 1.41 1.79-1.79-1.41-1.41-1.79 1.79zM12 5.5c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5 6.5-2.91 6.5-6.5-2.91-6.5-6.5-6.5zm0 11c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>';
-            }
+            if(isDark) { icon.innerHTML = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>'; } 
+            else { icon.innerHTML = '<path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8 8h-2v3h2v-3zm-7.45-3.91l1.41 1.41 1.79-1.79-1.41-1.41-1.79 1.79zM12 5.5c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5 6.5-2.91 6.5-6.5-2.91-6.5-6.5-6.5zm0 11c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>'; }
         }
         if(localStorage.getItem('gtr-darkmode') === 'true') toggleDarkMode();
 
@@ -920,7 +940,6 @@
             const now = new Date();
             const minutes = (now.getHours() * 60) + now.getMinutes();
             document.getElementById('now-line').style.left = `${minutes}px`;
-
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('date-display').textContent = now.toLocaleDateString('es-ES', options).toUpperCase();
             
@@ -934,18 +953,12 @@
             scrollArea.scrollTo({ left: minutes - 400, behavior: 'smooth' });
         }
 
-        // --- ARRANQUE DE LA APLICACIÓN ---
+        // --- ARRANQUE ---
         renderTimeHeader();
+        if (!loadFromLocalStorage()) { processCSVData(defaultCSV); } 
+        else { setTimeout(scrollToNow, 500); }
         
-        // Intentar cargar datos guardados; si no hay, usar el CSV de muestra
-        if (!loadFromLocalStorage()) {
-            processCSVData(defaultCSV);
-        } else {
-            setTimeout(scrollToNow, 500);
-        }
-
-        updateCurrentTime();
-        setInterval(updateCurrentTime, 60000);
+        updateCurrentTime(); setInterval(updateCurrentTime, 60000);
     </script>
 </body>
 </html>
