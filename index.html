@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Radar Operativo - Visión Liderazgo</title>
+    
+    <!-- Librería para leer archivos XLSX directo (SheetJS) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         /* =========================================
-           CONFIGURACIÓN BASE (Sin librerías externas)
+           CONFIGURACIÓN BASE
            ========================================= */
         :root {
             --bg-main: #f1f5f9;
@@ -15,7 +19,6 @@
             --text-muted: #64748b;
             --border-color: #cbd5e1;
             
-            /* Colores de los bloques en el Gantt */
             --c-conexion: rgba(34, 197, 94, 0.2);
             --c-conexion-border: #16a34a;
             --c-almuerzo: #facc15;
@@ -76,7 +79,6 @@
         .btn-icon { padding: 8px; border-radius: 50%; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark); cursor: pointer; }
         .btn-icon:hover { background: var(--bg-main); }
 
-        /* INPUT DE ARCHIVO OCULTO */
         #fileInput { display: none; }
 
         /* LEYENDA Y KPI STATS */
@@ -84,9 +86,7 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
         }
-        .legend {
-            display: flex; gap: 15px; font-size: 12px; font-weight: 600;
-        }
+        .legend { display: flex; gap: 15px; font-size: 12px; font-weight: 600; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .box-color { width: 12px; height: 12px; border-radius: 3px; }
         .bg-con { background: var(--c-conexion); border: 1px solid var(--c-conexion-border); }
@@ -102,7 +102,7 @@
         .stat-badge:hover { filter: brightness(0.9); }
         .stat-badge.active { outline: 2px solid #2563eb; }
 
-        /* GANTT CHART (La magia) */
+        /* GANTT CHART (Estructura Scrollable) */
         .gantt-wrapper {
             display: flex;
             flex: 1;
@@ -120,7 +120,7 @@
             flex-shrink: 0;
             border-right: 2px solid var(--border-color);
             background: var(--bg-panel);
-            z-index: 2;
+            z-index: 20;
             display: flex;
             flex-direction: column;
         }
@@ -135,6 +135,12 @@
             font-size: 12px;
             background: var(--bg-main);
             color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        #agent-names-container {
+            overflow: hidden; /* El scroll lo controla JS para sincronizar */
+            flex: 1;
         }
 
         .agent-row-label {
@@ -154,19 +160,20 @@
         .gantt-right {
             flex: 1;
             overflow-x: auto;
-            overflow-y: hidden;
+            overflow-y: auto; /* SCROLL VERTICAL HABILITADO */
             position: relative;
             display: flex;
             flex-direction: column;
         }
 
-        /* Fondo cuadriculado */
         .gantt-grid {
             position: absolute;
             top: 40px; left: 0; right: 0; bottom: 0;
             background-size: var(--gantt-hour-width) 100%;
             background-image: linear-gradient(to right, var(--bg-main) 1px, transparent 1px);
             z-index: 0;
+            height: 100%;
+            min-height: max-content;
         }
 
         .time-header-row {
@@ -175,8 +182,9 @@
             border-bottom: 1px solid var(--border-color);
             background: var(--bg-main);
             width: max-content;
-            position: relative;
-            z-index: 1;
+            position: sticky;
+            top: 0;
+            z-index: 50; /* Header pegajoso arriba */
         }
 
         .time-slot {
@@ -192,8 +200,7 @@
 
         .gantt-rows-container {
             position: relative;
-            width: 1440px; /* 24 horas * 60px */
-            flex: 1;
+            width: 1440px; /* 24 horas */
             z-index: 1;
         }
 
@@ -206,15 +213,11 @@
         /* Bloques de turnos */
         .shift-block {
             position: absolute;
-            height: 28px; /* Un poco menos que el row para dar margen */
+            height: 28px;
             top: 6px;
             border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 700;
-            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; overflow: hidden;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
@@ -222,27 +225,19 @@
         .b-almuerzo { background: var(--c-almuerzo); color: #713f12; z-index: 2; border: 1px solid #ca8a04; }
         .b-descanso { background: var(--c-descanso); color: #0c4a6e; z-index: 2; border: 1px solid #0284c7; }
 
-        /* Línea de hora actual */
         .current-time-line {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background-color: #ef4444;
-            z-index: 10;
-            pointer-events: none;
+            top: 0; bottom: 0; width: 2px;
+            background-color: #ef4444; z-index: 45; pointer-events: none;
+            height: 100%; min-height: max-content;
         }
         .current-time-line::after {
-            content: '';
-            position: absolute;
-            top: 35px;
-            left: -4px;
-            width: 10px; height: 10px;
-            background: #ef4444;
-            border-radius: 50%;
+            content: ''; position: absolute;
+            top: 35px; left: -4px;
+            width: 10px; height: 10px; background: #ef4444; border-radius: 50%;
         }
 
-        /* MODALES */
+        /* MODALES Y FILTROS */
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center;
@@ -252,16 +247,25 @@
             display: flex; flex-direction: column; gap: 15px; color: var(--text-dark);
         }
         
-        /* =========================================
-           NUEVOS ESTILOS PARA GTR (Buscador y Novedades)
-           ========================================= */
         .search-box {
             display: flex; align-items: center; background: var(--bg-main);
             border: 1px solid var(--border-color); border-radius: 6px;
-            padding: 2px 10px; margin-right: 10px;
+            padding: 2px 10px;
         }
-        .search-box input { border: none; outline: none; padding: 6px; font-size: 13px; width: 200px; background: transparent; color: var(--text-dark); }
+        .search-box input { border: none; outline: none; padding: 6px; font-size: 13px; width: 160px; background: transparent; color: var(--text-dark); }
         
+        .segment-select {
+            background: var(--bg-main);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            max-width: 200px;
+        }
+
         .b-novedad { background: #fca5a5; color: #7f1d1d; z-index: 3; border: 1px solid #ef4444; }
         .bg-nov { background: #fca5a5; }
 
@@ -277,7 +281,7 @@
 
         .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
         .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;
             background: var(--bg-main); color: var(--text-dark);
         }
@@ -292,10 +296,17 @@
         </div>
         
         <div class="controls">
+            <!-- NUEVO FILTRO DE SEGMENTOS -->
+            <select class="segment-select" id="segmentFilter" onchange="applyFilters()">
+                <option value="all">Todos los segmentos</option>
+                <!-- Se llena dinámicamente -->
+            </select>
+
             <div class="search-box">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--text-muted)"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" id="searchInput" placeholder="Buscar asesor (GTR)..." onkeyup="applyFilters()">
+                <input type="text" id="searchInput" placeholder="Buscar asesor..." onkeyup="applyFilters()">
             </div>
+            
             <button class="btn btn-outline" onclick="exportCSV()" title="Exportar GTR a Excel">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                 Exportar GTR
@@ -307,17 +318,17 @@
                 <svg id="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
             </button>
             
-            <!-- RESTAURADO: BOTÓN PEGAR EXCEL -->
+            <!-- BOTÓN PEGAR EXCEL (Respaldo) -->
             <button class="btn btn-outline" onclick="openModal('csvModal')">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                 Pegar Excel
             </button>
 
             <!-- EL NUEVO BOTÓN PARA SUBIR ARCHIVO -->
-            <input type="file" id="fileInput" accept=".csv, .txt" />
+            <input type="file" id="fileInput" accept=".csv, .txt, .xlsx, .xls" />
             <button class="btn" onclick="document.getElementById('fileInput').click()">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Subir CSV
+                Subir Archivo
             </button>
         </div>
     </div>
@@ -369,12 +380,12 @@
         </div>
     </div>
 
-    <!-- MODAL CARGAR DATOS (Restaurado para Copy/Paste) -->
+    <!-- MODAL CARGAR DATOS (Respaldo) -->
     <div class="modal" id="csvModal">
         <div class="modal-content">
             <h2 style="font-size: 16px;">Pegar datos del Excel (Exportación TEO)</h2>
             <p style="font-size: 12px; color: var(--text-muted);">Abre tu archivo Excel, selecciona toda la tabla (Ctrl+E), cópiala (Ctrl+C) y pégala aquí (Ctrl+V).</p>
-            <textarea id="csvInput" placeholder="id_tur_turnos_usuarios,inicio turno,cedula..."></textarea>
+            <textarea id="csvInput" placeholder="id_tur_turnos_usuarios,inicio turno,cedula..." style="height: 150px;"></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button class="btn btn-outline" onclick="closeModal('csvModal')">Cancelar</button>
                 <button class="btn" onclick="processPastedData()">Procesar Datos</button>
@@ -424,16 +435,22 @@
     <script>
         /* jshint esversion: 11, browser: true */
 
-        // ==========================================================
-        // DATOS Y ESTADO GLOBAL (GTR)
-        // ==========================================================
         let globalAgents = [];
         let filteredAgents = [];
         let currentStatusFilter = null; // null, 'conexion', 'almuerzo', 'descanso', 'novedad'
 
         const defaultCSV = `id_tur_turnos_usuarios,inicio turno,cedula,usuario red,pcrc,ceco,nombre asesor,nombre lider,inicio conexion,fin conexion,inicio desayuno,fin desayuno,inicio almuerzo,fin almuerzo,inicio cena,fin cena,inicio alimentacion1,fin alimentacion1,inicio alimentacion2,fin alimentacion2,descanso1,descanso2,descanso3,descanso4,capacitacion1,capacitacion2,capacitacion3,capacitacion4,Descanso,estado DP\n163354092,2026-05-21,1028662441,yenny.carreno,459612-4,459612,YENNY CARREÑO UPEGUI,NESTOR VALENCIA,09:00:00,17:00:00,,,13:15:00,13:45:00,,,10:30:00,10:45:00,15:45:00,16:00:00,,,,,,,,,Turno programado,Retiro\n163353728,2026-05-21,1012445050,yenyfer.amaya,459612-4,459612,YENYFER AMAYA SIERRA,NESTOR VALENCIA,09:00:00,17:00:00,,,12:30:00,13:00:00,,,10:15:00,10:30:00,15:00:00,15:15:00,,,,,,,,,Turno programado,Retiro\n163353826,2026-05-21,1014271228,andrea.pacheco,459612-1,459612,ANDREA PACHECO RODRIGUEZ,JUAN HERNANDEZ,08:00:00,16:00:00,,,12:00:00,13:00:00,,,10:00:00,10:15:00,14:00:00,14:15:00,,,,,,,,,Turno programado,En gestión\n163353721,2026-05-21,1010760232,carol.calducho,459612-1,459612,CAROL CALDUCHO WILCHES,JUAN HERNANDEZ,14:00:00,22:00:00,,,18:00:00,19:00:00,,,16:00:00,16:15:00,20:00:00,20:15:00,,,,,,,,,Turno programado,En gestión`;
 
-        // Utilidades de Tiempo
+        // ==========================================================
+        // SINCRONIZACIÓN DE SCROLL (Vertical)
+        // ==========================================================
+        const scrollArea = document.getElementById('gantt-scroll-area');
+        const namesContainer = document.getElementById('agent-names-container');
+        scrollArea.addEventListener('scroll', function() {
+            namesContainer.scrollTop = scrollArea.scrollTop;
+        });
+
+        // Utilidades
         function timeToPixels(timeStr) {
             if(!timeStr || timeStr.trim() === '') return null;
             const parts = timeStr.split(':');
@@ -445,13 +462,12 @@
             if(px === null || px === undefined) return '';
             let h = Math.floor(px / 60);
             let m = px % 60;
-            if(h >= 24) h -= 24; // Ajuste si pasa de medianoche
+            if(h >= 24) h -= 24; 
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         }
 
         function generateId() { return Math.random().toString(36).substr(2, 9); }
 
-        // Renderizado del encabezado base
         function renderTimeHeader() {
             const header = document.getElementById('time-header');
             header.innerHTML = '';
@@ -464,19 +480,38 @@
         }
 
         // ==========================================================
-        // LECTOR DE ARCHIVOS MEJORADO Y PEGADO (GTR)
+        // LECTOR DE ARCHIVOS (SOPORTE XLSX Y CSV)
         // ==========================================================
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const contents = e.target.result;
-                processCSVData(contents);
-            };
-            reader.readAsText(file); // Leer como texto
-            e.target.value = ''; // Resetear para permitir subir el mismo archivo después
+            // Si es Excel (.xlsx o .xls)
+            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                if (typeof XLSX === 'undefined') {
+                    alert("La red corporativa bloqueó el lector automático de Excel.\n\nPor favor, abre tu archivo, cópialo completo (Ctrl+E y Ctrl+C) y utiliza el botón 'Pegar Excel' como alternativa.");
+                    e.target.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.SheetNames[0];
+                    const csvData = XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheet]);
+                    processCSVData(csvData);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                // Si es CSV o TXT normal
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    processCSVData(evt.target.result);
+                };
+                reader.readAsText(file);
+            }
+            e.target.value = ''; 
         });
 
         function processPastedData() {
@@ -484,24 +519,18 @@
             if(text.trim() === '') { alert("Por favor pega los datos primero."); return; }
             processCSVData(text);
             closeModal('csvModal');
-            document.getElementById('csvInput').value = ''; // Limpiar
+            document.getElementById('csvInput').value = ''; 
         }
 
-        // Procesamiento del CSV a Estado Global
         function parseCSV(text) {
-            // Protección contra archivos binarios (Excel directo)
             if (text.startsWith('PK')) {
-                alert("¡Aviso! Subiste un archivo Excel (.xlsx) y la herramienta necesita un archivo CSV o Texto. Por favor, abre tu archivo, copia el contenido y usa el botón 'Pegar Excel'.");
+                alert("Pegaste el código binario de un Excel. Debes copiar el texto de las celdas, no el archivo.");
                 return globalAgents;
             }
 
             const lines = text.trim().split('\n');
-            if(lines.length < 2) {
-                alert("El archivo parece estar vacío o no tiene el formato correcto.");
-                return globalAgents;
-            }
+            if(lines.length < 2) return globalAgents;
             
-            // Detección automática del separador (, o ; o tabulación)
             const firstLine = lines[0];
             let sep = ',';
             if (firstLine.indexOf(';') !== -1) sep = ';';
@@ -510,6 +539,7 @@
             const headers = firstLine.toLowerCase().replace(/\r/g, '').split(sep);
             
             const iName = headers.indexOf('nombre asesor');
+            const iLider = headers.indexOf('nombre lider'); // O extraer PCRC
             const iConIn = headers.indexOf('inicio conexion');
             const iConOut = headers.indexOf('fin conexion');
             const iAlmIn = headers.indexOf('inicio almuerzo');
@@ -520,7 +550,7 @@
             const iBreak2Out = headers.indexOf('fin alimentacion2');
 
             if (iName === -1 || iConIn === -1) {
-                alert("No se encontraron las columnas correctas ('nombre asesor', 'inicio conexion'). Asegúrate de que es la exportación TEO correcta.");
+                alert("Columnas incorrectas. Asegúrate de copiar desde el Excel TEO.");
                 return globalAgents;
             }
 
@@ -533,14 +563,15 @@
                 const name = cols[iName].replace(/['"]/g, '').trim();
                 const shiftStart = cols[iConIn];
                 const shiftEnd = cols[iConOut];
+                const liderName = iLider !== -1 && cols[iLider] ? cols[iLider].replace(/['"]/g, '').trim() : "Sin Líder";
                 
-                // Limpieza de errores comunes de WFM
                 if(!shiftStart || !shiftEnd || (shiftStart === '00:00:00' && shiftEnd === '00:00:00')) continue;
-                if(shiftStart === '02:00:00' && shiftEnd === '02:15:00') continue; // Falsos positivos (días libres)
+                if(shiftStart === '02:00:00' && shiftEnd === '02:15:00') continue; 
 
                 const agentData = {
                     id: generateId(),
                     name: name,
+                    lider: liderName,
                     shift: { type: 'conexion', start: timeToPixels(shiftStart), end: timeToPixels(shiftEnd) },
                     events: []
                 };
@@ -553,52 +584,65 @@
 
                 agents.push(agentData);
             }
-            
-            if (agents.length === 0) {
-                alert("No se encontraron turnos válidos en la lectura. Revisa el formato del archivo.");
-            }
-            
             return agents;
         }
 
-        // Procesar los datos (ya sea del archivo o del default)
+        function buildSegmentFilter() {
+            const select = document.getElementById('segmentFilter');
+            const lideres = new Set(globalAgents.map(a => a.lider));
+            
+            let html = '<option value="all">Todos los segmentos (Líderes)</option>';
+            Array.from(lideres).sort().forEach(lider => {
+                if (lider) html += `<option value="${lider}">${lider}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
         function processCSVData(text) {
             if(!text || text.trim() === '') return;
             globalAgents = parseCSV(text);
             filteredAgents = [...globalAgents];
+            
+            buildSegmentFilter(); // Actualiza la lista de líderes
             document.getElementById('searchInput').value = '';
+            document.getElementById('segmentFilter').value = 'all';
             currentStatusFilter = null;
             document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
+            
             renderGantt(filteredAgents);
             calculateLiveStats();
-            scrollToNow();
+            setTimeout(scrollToNow, 300);
         }
 
-        // Filtro GTR Integrado (Buscador + Estado Actual)
+        // ==========================================================
+        // FILTROS COMBINADOS (Buscador + Segmento + Estado)
+        // ==========================================================
         function applyFilters() {
             const query = document.getElementById('searchInput').value.toLowerCase();
+            const segment = document.getElementById('segmentFilter').value;
             const now = new Date();
             const currentMins = (now.getHours() * 60) + now.getMinutes();
 
             filteredAgents = globalAgents.filter(a => {
+                // Filtro Buscador
                 const matchesName = a.name.toLowerCase().includes(query);
                 if (!matchesName) return false;
 
+                // Filtro Segmento (Líder)
+                if (segment !== 'all' && a.lider !== segment) return false;
+
+                // Filtro Estado Actual
                 if (currentStatusFilter) {
                     let agentStatus = 'offline';
-                    if (a.shift.start <= currentMins && currentMins <= a.shift.end) {
-                        agentStatus = 'conexion';
-                    }
+                    if (a.shift.start <= currentMins && currentMins <= a.shift.end) agentStatus = 'conexion';
                     
                     a.events.forEach(ev => {
                         let evEnd = ev.end;
                         if(evEnd < ev.start) evEnd += (24*60); 
-                        if (ev.start <= currentMins && currentMins <= evEnd) {
-                            agentStatus = ev.type;
-                        }
+                        if (ev.start <= currentMins && currentMins <= evEnd) agentStatus = ev.type;
                     });
                     
-                    return agentStatus === currentStatusFilter;
+                    if (agentStatus !== currentStatusFilter) return false;
                 }
                 
                 return true;
@@ -608,7 +652,6 @@
 
         function toggleStatusFilter(status) {
             document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
-            
             if (currentStatusFilter === status) {
                 currentStatusFilter = null;
             } else {
@@ -618,29 +661,27 @@
             applyFilters();
         }
 
-        // Calcular Estadísticas en Vivo (KPIs)
         function calculateLiveStats() {
             const now = new Date();
             const currentMins = (now.getHours() * 60) + now.getMinutes();
             let counts = { conexion: 0, almuerzo: 0, descanso: 0, novedad: 0 };
+            
+            // Calculamos los stats basándonos SOLO en los agentes visibles (filtrados por líder)
+            const baseAgents = document.getElementById('segmentFilter').value === 'all' 
+                               ? globalAgents 
+                               : globalAgents.filter(a => a.lider === document.getElementById('segmentFilter').value);
 
-            globalAgents.forEach(a => {
+            baseAgents.forEach(a => {
                 let agentStatus = 'offline';
-                if (a.shift.start <= currentMins && currentMins <= a.shift.end) {
-                    agentStatus = 'conexion';
-                }
+                if (a.shift.start <= currentMins && currentMins <= a.shift.end) agentStatus = 'conexion';
                 
                 a.events.forEach(ev => {
                     let evEnd = ev.end;
                     if(evEnd < ev.start) evEnd += (24*60);
-                    if (ev.start <= currentMins && currentMins <= evEnd) {
-                        agentStatus = ev.type;
-                    }
+                    if (ev.start <= currentMins && currentMins <= evEnd) agentStatus = ev.type;
                 });
 
-                if (counts[agentStatus] !== undefined) {
-                    counts[agentStatus]++;
-                }
+                if (counts[agentStatus] !== undefined) counts[agentStatus]++;
             });
 
             document.getElementById('stat-con').textContent = counts.conexion;
@@ -649,16 +690,17 @@
             document.getElementById('stat-nov').textContent = counts.novedad;
         }
 
-        // Exportar a CSV (Para reportes GTR)
+        // ==========================================================
+        // UTILIDADES EXTRAS
+        // ==========================================================
         function exportCSV() {
-            let csvContent = "Agente,Tipo Evento,Hora Inicio,Hora Fin\n";
+            let csvContent = "Agente,Segmento,Tipo Evento,Hora Inicio,Hora Fin\n";
             globalAgents.forEach(a => {
-                csvContent += `"${a.name}",Turno Base,${pixelsToTime(a.shift.start)},${pixelsToTime(a.shift.end)}\n`;
+                csvContent += `"${a.name}","${a.lider}",Turno Base,${pixelsToTime(a.shift.start)},${pixelsToTime(a.shift.end)}\n`;
                 a.events.forEach(ev => {
-                    csvContent += `"${a.name}",${ev.type.toUpperCase()},${pixelsToTime(ev.start)},${pixelsToTime(ev.end)}\n`;
+                    csvContent += `"${a.name}","${a.lider}",${ev.type.toUpperCase()},${pixelsToTime(ev.start)},${pixelsToTime(ev.end)}\n`;
                 });
             });
-
             const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
@@ -670,7 +712,6 @@
             document.body.removeChild(link);
         }
 
-        // Modo Oscuro
         function toggleDarkMode() {
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
@@ -683,36 +724,27 @@
                 icon.innerHTML = '<path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8 8h-2v3h2v-3zm-7.45-3.91l1.41 1.41 1.79-1.79-1.41-1.41-1.79 1.79zM12 5.5c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5 6.5-2.91 6.5-6.5-2.91-6.5-6.5-6.5zm0 11c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>';
             }
         }
-
-        // Cargar preferencia de Modo Oscuro al inicio
         if(localStorage.getItem('gtr-darkmode') === 'true') toggleDarkMode();
 
-        // Dibujar el diagrama con eventos editables
         function renderGantt(agentsToRender) {
-            const namesContainer = document.getElementById('agent-names-container');
-            const blocksContainer = document.getElementById('gantt-blocks-container');
-            
             namesContainer.innerHTML = '';
-            blocksContainer.innerHTML = '';
+            document.getElementById('gantt-blocks-container').innerHTML = '';
             document.getElementById('total-agents').textContent = agentsToRender.length;
 
             agentsToRender.forEach(agent => {
-                // Etiqueta del nombre (Izquierda) + Botón Agregar
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'agent-row-label';
                 nameDiv.innerHTML = `
-                    <span title="${agent.name}">${agent.name}</span>
+                    <span title="${agent.name} (${agent.lider})">${agent.name}</span>
                     <button class="add-btn" title="Agregar Novedad GTR" onclick="openEventModal('${agent.id}', 'new')">
                         <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                     </button>
                 `;
                 namesContainer.appendChild(nameDiv);
 
-                // Fila del Gantt (Derecha)
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'gantt-row';
 
-                // Turno Principal
                 if(agent.shift.start !== null && agent.shift.end !== null) {
                     const shiftBlock = document.createElement('div');
                     shiftBlock.className = 'shift-block b-conexion';
@@ -723,7 +755,6 @@
                     rowDiv.appendChild(shiftBlock);
                 }
 
-                // Eventos Adicionales
                 agent.events.forEach(ev => {
                     if(ev.start !== null && ev.end !== null) {
                         const evBlock = document.createElement('div');
@@ -737,12 +768,12 @@
                         rowDiv.appendChild(evBlock);
                     }
                 });
-                blocksContainer.appendChild(rowDiv);
+                document.getElementById('gantt-blocks-container').appendChild(rowDiv);
             });
         }
 
         // ==========================================================
-        // LÓGICA DE EDICIÓN Y GTR
+        // EDICIÓN DE EVENTOS GTR
         // ==========================================================
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -763,25 +794,19 @@
             if(eventId === 'new') {
                 document.getElementById('eventModalTitle').textContent = "Nueva Novedad GTR";
                 typeSelect.value = 'novedad';
-                startInput.value = '';
-                endInput.value = '';
-                btnDelete.style.display = 'none';
-                typeSelect.disabled = false;
+                startInput.value = ''; endInput.value = '';
+                btnDelete.style.display = 'none'; typeSelect.disabled = false;
             } else if (eventId === 'shift') {
                 document.getElementById('eventModalTitle').textContent = "Editar Turno Base";
                 typeSelect.value = 'conexion';
-                startInput.value = pixelsToTime(agent.shift.start);
-                endInput.value = pixelsToTime(agent.shift.end);
-                btnDelete.style.display = 'none';
-                typeSelect.disabled = true; // El turno base no cambia de tipo
+                startInput.value = pixelsToTime(agent.shift.start); endInput.value = pixelsToTime(agent.shift.end);
+                btnDelete.style.display = 'none'; typeSelect.disabled = true;
             } else {
                 document.getElementById('eventModalTitle').textContent = "Editar Evento";
                 const ev = agent.events.find(e => e.id === eventId);
                 typeSelect.value = ev.type;
-                startInput.value = pixelsToTime(ev.start);
-                endInput.value = pixelsToTime(ev.end);
-                btnDelete.style.display = 'block';
-                typeSelect.disabled = false;
+                startInput.value = pixelsToTime(ev.start); endInput.value = pixelsToTime(ev.end);
+                btnDelete.style.display = 'block'; typeSelect.disabled = false;
             }
             openModal('eventModal');
         }
@@ -793,60 +818,53 @@
             let start = timeToPixels(document.getElementById('editStart').value);
             let end = timeToPixels(document.getElementById('editEnd').value);
 
-            if(start === null || end === null) { alert("Completa las horas correctamente."); return; }
-            if(end < start) end += (24*60); // Ajuste cruce de medianoche
+            if(start === null || end === null) { alert("Completa las horas."); return; }
+            if(end < start) end += (24*60); 
 
             const agent = globalAgents.find(a => a.id === agentId);
             
             if(eventId === 'new') {
                 agent.events.push({ id: generateId(), type: type, start: start, end: end });
             } else if (eventId === 'shift') {
-                agent.shift.start = start;
-                agent.shift.end = end;
+                agent.shift.start = start; agent.shift.end = end;
             } else {
                 const ev = agent.events.find(e => e.id === eventId);
-                ev.type = type;
-                ev.start = start;
-                ev.end = end;
+                ev.type = type; ev.start = start; ev.end = end;
             }
 
             closeModal('eventModal');
-            applyFilters(); // Refresca con el filtro actual y recalcula
+            applyFilters();
             calculateLiveStats();
         }
 
         function deleteEvent() {
             const agentId = document.getElementById('editAgentId').value;
             const eventId = document.getElementById('editEventId').value;
-            
             const agent = globalAgents.find(a => a.id === agentId);
             agent.events = agent.events.filter(e => e.id !== eventId);
-            
             closeModal('eventModal');
             applyFilters();
             calculateLiveStats();
         }
 
         // ==========================================================
-        // LÓGICA DE TIEMPO ACTUAL
+        // RELOJ / SCROLL
         // ==========================================================
         function updateCurrentTime() {
             const now = new Date();
             const minutes = (now.getHours() * 60) + now.getMinutes();
-            const nowLine = document.getElementById('now-line');
-            nowLine.style.left = `${minutes}px`;
+            document.getElementById('now-line').style.left = `${minutes}px`;
 
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('date-display').textContent = now.toLocaleDateString('es-ES', options).toUpperCase();
             
             calculateLiveStats();
-            if(currentStatusFilter) applyFilters(); // Mantiene el filtro de estado actualizado
+            if(currentStatusFilter) applyFilters(); 
         }
 
         function scrollToNow() {
             const now = new Date();
             const minutes = (now.getHours() * 60) + now.getMinutes();
-            const scrollArea = document.getElementById('gantt-scroll-area');
             scrollArea.scrollTo({ left: minutes - 400, behavior: 'smooth' });
         }
 
@@ -856,8 +874,6 @@
         updateCurrentTime();
         
         setInterval(updateCurrentTime, 60000);
-        setTimeout(scrollToNow, 500);
-
     </script>
 </body>
 </html>
