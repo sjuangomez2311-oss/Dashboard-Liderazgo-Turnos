@@ -76,6 +76,9 @@
         .btn-icon { padding: 8px; border-radius: 50%; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark); cursor: pointer; }
         .btn-icon:hover { background: var(--bg-main); }
 
+        /* INPUT DE ARCHIVO OCULTO */
+        #fileInput { display: none; }
+
         /* LEYENDA Y KPI STATS */
         .header-bottom {
             display: flex; justify-content: space-between; align-items: center;
@@ -239,7 +242,7 @@
             border-radius: 50%;
         }
 
-        /* Modal para pegar CSV */
+        /* MODALES */
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center;
@@ -248,7 +251,6 @@
             background: var(--bg-panel); padding: 20px; border-radius: 8px; width: 600px;
             display: flex; flex-direction: column; gap: 15px; color: var(--text-dark);
         }
-        .modal textarea { width: 100%; height: 200px; padding: 10px; border: 1px solid var(--border-color); font-family: monospace; font-size: 12px; background: var(--bg-main); color: var(--text-dark);}
         
         /* =========================================
            NUEVOS ESTILOS PARA GTR (Buscador y Novedades)
@@ -304,9 +306,12 @@
             <button class="btn-icon" onclick="toggleDarkMode()" title="Cambiar Tema">
                 <svg id="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
             </button>
-            <button class="btn" onclick="openModal('csvModal')">
+            
+            <!-- EL NUEVO BOTÓN PARA SUBIR ARCHIVO -->
+            <input type="file" id="fileInput" accept=".csv" />
+            <button class="btn" onclick="document.getElementById('fileInput').click()">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Cargar CSV
+                Subir Archivo (.csv)
             </button>
         </div>
     </div>
@@ -354,19 +359,6 @@
                 <div id="gantt-blocks-container">
                     <!-- Se llena con JS -->
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL CARGAR DATOS -->
-    <div class="modal" id="csvModal">
-        <div class="modal-content">
-            <h2 style="font-size: 16px;">Pegar datos del Excel (Exportación TEO)</h2>
-            <p style="font-size: 12px; color: var(--text-muted);">Abre tu archivo Excel, copia todas las celdas con encabezados incluidos y pégalas aquí.</p>
-            <textarea id="csvInput" placeholder="id_tur_turnos_usuarios,inicio turno,cedula..."></textarea>
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button class="btn btn-outline" onclick="closeModal('csvModal')">Cancelar</button>
-                <button class="btn" onclick="processCSVInput()">Procesar Datos</button>
             </div>
         </div>
     </div>
@@ -452,6 +444,21 @@
             }
         }
 
+        // ==========================================================
+        // LECTOR DE ARCHIVOS (NUEVO)
+        // ==========================================================
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const contents = e.target.result;
+                processCSVData(contents);
+            };
+            reader.readAsText(file);
+        });
+
         // Procesamiento del CSV a Estado Global
         function parseCSV(text) {
             const lines = text.trim().split('\n');
@@ -477,7 +484,10 @@
                 const name = cols[iName].replace(/['"]/g, '').trim();
                 const shiftStart = cols[iConIn];
                 const shiftEnd = cols[iConOut];
-                if(!shiftStart || !shiftEnd) continue;
+                
+                // Limpieza de errores comunes de WFM
+                if(!shiftStart || !shiftEnd || shiftStart === '00:00:00' && shiftEnd === '00:00:00') continue;
+                if(shiftStart === '02:00:00' && shiftEnd === '02:15:00') continue; // Falsos positivos en tu archivo
 
                 const agentData = {
                     id: generateId(),
@@ -488,13 +498,26 @@
 
                 if(agentData.shift.end < agentData.shift.start) agentData.shift.end += (24 * 60);
 
-                if(iAlmIn !== -1 && cols[iAlmIn]) agentData.events.push({ id: generateId(), type: 'almuerzo', start: timeToPixels(cols[iAlmIn]), end: timeToPixels(cols[iAlmOut]) });
-                if(iBreak1In !== -1 && cols[iBreak1In]) agentData.events.push({ id: generateId(), type: 'descanso', start: timeToPixels(cols[iBreak1In]), end: timeToPixels(cols[iBreak1Out]) });
-                if(iBreak2In !== -1 && cols[iBreak2In]) agentData.events.push({ id: generateId(), type: 'descanso', start: timeToPixels(cols[iBreak2In]), end: timeToPixels(cols[iBreak2Out]) });
+                if(iAlmIn !== -1 && cols[iAlmIn] && cols[iAlmIn] !== '00:00:00') agentData.events.push({ id: generateId(), type: 'almuerzo', start: timeToPixels(cols[iAlmIn]), end: timeToPixels(cols[iAlmOut]) });
+                if(iBreak1In !== -1 && cols[iBreak1In] && cols[iBreak1In] !== '00:00:00') agentData.events.push({ id: generateId(), type: 'descanso', start: timeToPixels(cols[iBreak1In]), end: timeToPixels(cols[iBreak1Out]) });
+                if(iBreak2In !== -1 && cols[iBreak2In] && cols[iBreak2In] !== '00:00:00') agentData.events.push({ id: generateId(), type: 'descanso', start: timeToPixels(cols[iBreak2In]), end: timeToPixels(cols[iBreak2Out]) });
 
                 agents.push(agentData);
             }
             return agents;
+        }
+
+        // Procesar los datos (ya sea del archivo o del default)
+        function processCSVData(text) {
+            if(!text || text.trim() === '') return;
+            globalAgents = parseCSV(text);
+            filteredAgents = [...globalAgents];
+            document.getElementById('searchInput').value = '';
+            currentStatusFilter = null;
+            document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
+            renderGantt(filteredAgents);
+            calculateLiveStats();
+            scrollToNow();
         }
 
         // Filtro GTR Integrado (Buscador + Estado Actual)
@@ -750,20 +773,6 @@
             calculateLiveStats();
         }
 
-        function processCSVInput() {
-            const text = document.getElementById('csvInput').value;
-            if(text.trim() === '') { alert("Por favor pega los datos primero."); return; }
-            globalAgents = parseCSV(text);
-            filteredAgents = [...globalAgents];
-            document.getElementById('searchInput').value = '';
-            currentStatusFilter = null;
-            document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
-            renderGantt(filteredAgents);
-            closeModal('csvModal');
-            calculateLiveStats();
-            scrollToNow();
-        }
-
         // ==========================================================
         // LÓGICA DE TIEMPO ACTUAL
         // ==========================================================
@@ -789,9 +798,7 @@
 
         // Inicialización
         renderTimeHeader();
-        globalAgents = parseCSV(defaultCSV);
-        filteredAgents = [...globalAgents];
-        renderGantt(filteredAgents);
+        processCSVData(defaultCSV);
         updateCurrentTime();
         
         setInterval(updateCurrentTime, 60000);
