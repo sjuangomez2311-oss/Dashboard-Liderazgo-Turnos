@@ -307,11 +307,17 @@
                 <svg id="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
             </button>
             
+            <!-- RESTAURADO: BOTÓN PEGAR EXCEL -->
+            <button class="btn btn-outline" onclick="openModal('csvModal')">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Pegar Excel
+            </button>
+
             <!-- EL NUEVO BOTÓN PARA SUBIR ARCHIVO -->
-            <input type="file" id="fileInput" accept=".csv" />
+            <input type="file" id="fileInput" accept=".csv, .txt" />
             <button class="btn" onclick="document.getElementById('fileInput').click()">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Subir Archivo (.csv)
+                Subir CSV
             </button>
         </div>
     </div>
@@ -359,6 +365,19 @@
                 <div id="gantt-blocks-container">
                     <!-- Se llena con JS -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CARGAR DATOS (Restaurado para Copy/Paste) -->
+    <div class="modal" id="csvModal">
+        <div class="modal-content">
+            <h2 style="font-size: 16px;">Pegar datos del Excel (Exportación TEO)</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Abre tu archivo Excel, selecciona toda la tabla (Ctrl+E), cópiala (Ctrl+C) y pégala aquí (Ctrl+V).</p>
+            <textarea id="csvInput" placeholder="id_tur_turnos_usuarios,inicio turno,cedula..."></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-outline" onclick="closeModal('csvModal')">Cancelar</button>
+                <button class="btn" onclick="processPastedData()">Procesar Datos</button>
             </div>
         </div>
     </div>
@@ -445,7 +464,7 @@
         }
 
         // ==========================================================
-        // LECTOR DE ARCHIVOS (NUEVO)
+        // LECTOR DE ARCHIVOS MEJORADO Y PEGADO (GTR)
         // ==========================================================
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -456,15 +475,40 @@
                 const contents = e.target.result;
                 processCSVData(contents);
             };
-            reader.readAsText(file);
+            reader.readAsText(file); // Leer como texto
+            e.target.value = ''; // Resetear para permitir subir el mismo archivo después
         });
+
+        function processPastedData() {
+            const text = document.getElementById('csvInput').value;
+            if(text.trim() === '') { alert("Por favor pega los datos primero."); return; }
+            processCSVData(text);
+            closeModal('csvModal');
+            document.getElementById('csvInput').value = ''; // Limpiar
+        }
 
         // Procesamiento del CSV a Estado Global
         function parseCSV(text) {
+            // Protección contra archivos binarios (Excel directo)
+            if (text.startsWith('PK')) {
+                alert("¡Aviso! Subiste un archivo Excel (.xlsx) y la herramienta necesita un archivo CSV o Texto. Por favor, abre tu archivo, copia el contenido y usa el botón 'Pegar Excel'.");
+                return globalAgents;
+            }
+
             const lines = text.trim().split('\n');
-            if(lines.length < 2) return [];
+            if(lines.length < 2) {
+                alert("El archivo parece estar vacío o no tiene el formato correcto.");
+                return globalAgents;
+            }
             
-            const headers = lines[0].toLowerCase().split(',');
+            // Detección automática del separador (, o ; o tabulación)
+            const firstLine = lines[0];
+            let sep = ',';
+            if (firstLine.indexOf(';') !== -1) sep = ';';
+            if (firstLine.indexOf('\t') !== -1) sep = '\t';
+
+            const headers = firstLine.toLowerCase().replace(/\r/g, '').split(sep);
+            
             const iName = headers.indexOf('nombre asesor');
             const iConIn = headers.indexOf('inicio conexion');
             const iConOut = headers.indexOf('fin conexion');
@@ -475,10 +519,15 @@
             const iBreak2In = headers.indexOf('inicio alimentacion2');
             const iBreak2Out = headers.indexOf('fin alimentacion2');
 
+            if (iName === -1 || iConIn === -1) {
+                alert("No se encontraron las columnas correctas ('nombre asesor', 'inicio conexion'). Asegúrate de que es la exportación TEO correcta.");
+                return globalAgents;
+            }
+
             const agents = [];
 
             for(let i=1; i<lines.length; i++) {
-                const cols = lines[i].split(',');
+                const cols = lines[i].replace(/\r/g, '').split(sep);
                 if(cols.length < Math.max(iName, iConOut)) continue;
 
                 const name = cols[iName].replace(/['"]/g, '').trim();
@@ -486,8 +535,8 @@
                 const shiftEnd = cols[iConOut];
                 
                 // Limpieza de errores comunes de WFM
-                if(!shiftStart || !shiftEnd || shiftStart === '00:00:00' && shiftEnd === '00:00:00') continue;
-                if(shiftStart === '02:00:00' && shiftEnd === '02:15:00') continue; // Falsos positivos en tu archivo
+                if(!shiftStart || !shiftEnd || (shiftStart === '00:00:00' && shiftEnd === '00:00:00')) continue;
+                if(shiftStart === '02:00:00' && shiftEnd === '02:15:00') continue; // Falsos positivos (días libres)
 
                 const agentData = {
                     id: generateId(),
@@ -504,6 +553,11 @@
 
                 agents.push(agentData);
             }
+            
+            if (agents.length === 0) {
+                alert("No se encontraron turnos válidos en la lectura. Revisa el formato del archivo.");
+            }
+            
             return agents;
         }
 
