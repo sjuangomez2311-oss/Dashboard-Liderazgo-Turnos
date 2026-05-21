@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Operativo - Visión Liderazgo</title>
+    <style>
+        /* =========================================
+           CONFIGURACIÓN BASE (Sin librerías externas)
+           ========================================= */
+        :root {
+            --bg-main: #f1f5f9;
+            --bg-panel: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            
+            /* Colores de los bloques en el Gantt */
+            --c-conexion: rgba(34, 197, 94, 0.2);
+            --c-conexion-border: #16a34a;
+            --c-almuerzo: #facc15;
+            --c-descanso: #38bdf8;
+            
+            --gantt-hour-width: 60px; /* 1 minuto = 1px */
+            --row-height: 40px;
+        }
+
+        body.dark-theme {
+            --bg-main: #0f172a;
+            --bg-panel: #1e293b;
+            --text-dark: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --c-conexion: rgba(34, 197, 94, 0.15);
+            --c-conexion-border: #15803d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* HEADER Y CONTROLES */
+        .top-bar {
+            background: var(--bg-panel);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            z-index: 10;
+        }
+
+        .title-area h1 { font-size: 18px; color: var(--text-dark); margin-bottom: 4px; }
+        .title-area p { font-size: 12px; color: var(--text-muted); }
+
+        .controls { display: flex; gap: 10px; align-items: center; }
+        
+        .btn {
+            background: #2563eb; color: white; border: none;
+            padding: 8px 16px; border-radius: 6px; font-weight: 600;
+            cursor: pointer; font-size: 13px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn:hover { background: #1d4ed8; }
+        .btn-outline { background: transparent; color: var(--text-dark); border: 1px solid var(--border-color); }
+        .btn-outline:hover { background: var(--bg-main); }
+        .btn-icon { padding: 8px; border-radius: 50%; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark); cursor: pointer; }
+        .btn-icon:hover { background: var(--bg-main); }
+
+        /* LEYENDA Y KPI STATS */
+        .header-bottom {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
+        }
+        .legend {
+            display: flex; gap: 15px; font-size: 12px; font-weight: 600;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .box-color { width: 12px; height: 12px; border-radius: 3px; }
+        .bg-con { background: var(--c-conexion); border: 1px solid var(--c-conexion-border); }
+        .bg-alm { background: var(--c-almuerzo); }
+        .bg-des { background: var(--c-descanso); }
+
+        .live-stats { display: flex; gap: 10px; }
+        .stat-badge {
+            display: flex; align-items: center; gap: 6px; padding: 4px 10px; 
+            border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer;
+            border: 1px solid var(--border-color); background: var(--bg-main); transition: 0.2s;
+        }
+        .stat-badge:hover { filter: brightness(0.9); }
+        .stat-badge.active { outline: 2px solid #2563eb; }
+
+        /* GANTT CHART (La magia) */
+        .gantt-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background: var(--bg-panel);
+            margin: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        /* Panel Izquierdo (Nombres) */
+        .gantt-left {
+            width: 250px;
+            flex-shrink: 0;
+            border-right: 2px solid var(--border-color);
+            background: var(--bg-panel);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gantt-header-cell {
+            height: 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-weight: 700;
+            font-size: 12px;
+            background: var(--bg-main);
+            color: var(--text-muted);
+        }
+
+        .agent-row-label {
+            height: var(--row-height);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Panel Derecho (Línea de Tiempo) */
+        .gantt-right {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fondo cuadriculado */
+        .gantt-grid {
+            position: absolute;
+            top: 40px; left: 0; right: 0; bottom: 0;
+            background-size: var(--gantt-hour-width) 100%;
+            background-image: linear-gradient(to right, var(--bg-main) 1px, transparent 1px);
+            z-index: 0;
+        }
+
+        .time-header-row {
+            display: flex;
+            height: 40px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-main);
+            width: max-content;
+            position: relative;
+            z-index: 1;
+        }
+
+        .time-slot {
+            width: var(--gantt-hour-width);
+            flex-shrink: 0;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding-left: 4px;
+            padding-top: 10px;
+            border-left: 1px solid var(--border-color);
+        }
+
+        .gantt-rows-container {
+            position: relative;
+            width: 1440px; /* 24 horas * 60px */
+            flex: 1;
+            z-index: 1;
+        }
+
+        .gantt-row {
+            height: var(--row-height);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        /* Bloques de turnos */
+        .shift-block {
+            position: absolute;
+            height: 28px; /* Un poco menos que el row para dar margen */
+            top: 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .b-conexion { background: var(--c-conexion); border: 1px solid var(--c-conexion-border); color: #166534; z-index: 1; }
+        .b-almuerzo { background: var(--c-almuerzo); color: #713f12; z-index: 2; border: 1px solid #ca8a04; }
+        .b-descanso { background: var(--c-descanso); color: #0c4a6e; z-index: 2; border: 1px solid #0284c7; }
+
+        /* Línea de hora actual */
+        .current-time-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #ef4444;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .current-time-line::after {
+            content: '';
+            position: absolute;
+            top: 35px;
+            left: -4px;
+            width: 10px; height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        /* Modal para pegar CSV */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--bg-panel); padding: 20px; border-radius: 8px; width: 600px;
+            display: flex; flex-direction: column; gap: 15px; color: var(--text-dark);
+        }
+        .modal textarea { width: 100%; height: 200px; padding: 10px; border: 1px solid var(--border-color); font-family: monospace; font-size: 12px; background: var(--bg-main); color: var(--text-dark);}
+        
+        /* =========================================
+           NUEVOS ESTILOS PARA GTR (Buscador y Novedades)
+           ========================================= */
+        .search-box {
+            display: flex; align-items: center; background: var(--bg-main);
+            border: 1px solid var(--border-color); border-radius: 6px;
+            padding: 2px 10px; margin-right: 10px;
+        }
+        .search-box input { border: none; outline: none; padding: 6px; font-size: 13px; width: 200px; background: transparent; color: var(--text-dark); }
+        
+        .b-novedad { background: #fca5a5; color: #7f1d1d; z-index: 3; border: 1px solid #ef4444; }
+        .bg-nov { background: #fca5a5; }
+
+        .add-btn {
+            background: none; border: none; color: #2563eb; cursor: pointer;
+            margin-left: auto; display: flex; align-items: center; padding: 4px; border-radius: 4px;
+        }
+        .add-btn:hover { background: var(--bg-main); }
+        .agent-row-label { cursor: pointer; }
+        .agent-row-label:hover { background: var(--bg-main); }
+        .shift-block { cursor: pointer; transition: transform 0.1s; }
+        .shift-block:hover { transform: scaleY(1.1); box-shadow: 0 4px 6px rgba(0,0,0,0.2); z-index: 20; }
+
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+        .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        .form-group input, .form-group select {
+            padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;
+            background: var(--bg-main); color: var(--text-dark);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="title-area">
+            <h1>Radar Operativo (Vista de Liderazgo)</h1>
+            <p id="date-display">Cargando fecha...</p>
+        </div>
+        
+        <div class="controls">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--text-muted)"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" id="searchInput" placeholder="Buscar asesor (GTR)..." onkeyup="applyFilters()">
+            </div>
+            <button class="btn btn-outline" onclick="exportCSV()" title="Exportar GTR a Excel">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Exportar GTR
+            </button>
+            <button class="btn btn-outline" onclick="scrollToNow()" title="Ir a la hora actual">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+            </button>
+            <button class="btn-icon" onclick="toggleDarkMode()" title="Cambiar Tema">
+                <svg id="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+            </button>
+            <button class="btn" onclick="openModal('csvModal')">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Cargar CSV
+            </button>
+        </div>
+    </div>
+
+    <div class="header-bottom">
+        <div class="legend">
+            <div class="legend-item"><div class="box-color bg-con"></div> Conexión</div>
+            <div class="legend-item"><div class="box-color bg-alm"></div> Almuerzo</div>
+            <div class="legend-item"><div class="box-color bg-des"></div> Descanso</div>
+            <div class="legend-item"><div class="box-color bg-nov"></div> Novedad</div>
+        </div>
+        
+        <div class="live-stats">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center;">EN VIVO:</span>
+            <div class="stat-badge" onclick="toggleStatusFilter('conexion')" id="badge-conexion" title="Clic para filtrar">
+                🟢 <span id="stat-con">0</span> Conectados
+            </div>
+            <div class="stat-badge" onclick="toggleStatusFilter('almuerzo')" id="badge-almuerzo" title="Clic para filtrar">
+                🟡 <span id="stat-alm">0</span> Almuerzo
+            </div>
+            <div class="stat-badge" onclick="toggleStatusFilter('descanso')" id="badge-descanso" title="Clic para filtrar">
+                🔵 <span id="stat-des">0</span> Descanso
+            </div>
+            <div class="stat-badge" onclick="toggleStatusFilter('novedad')" id="badge-novedad" title="Clic para filtrar">
+                🔴 <span id="stat-nov">0</span> Novedad
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-wrapper">
+        <div class="gantt-left">
+            <div class="gantt-header-cell">Asesores (<span id="total-agents">0</span>)</div>
+            <div id="agent-names-container">
+                <!-- Se llena con JS -->
+            </div>
+        </div>
+
+        <div class="gantt-right" id="gantt-scroll-area">
+            <div class="gantt-grid"></div>
+            <div class="time-header-row" id="time-header">
+                <!-- Se llena con JS (00:00 a 23:00) -->
+            </div>
+            <div class="gantt-rows-container">
+                <div class="current-time-line" id="now-line"></div>
+                <div id="gantt-blocks-container">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CARGAR DATOS -->
+    <div class="modal" id="csvModal">
+        <div class="modal-content">
+            <h2 style="font-size: 16px;">Pegar datos del Excel (Exportación TEO)</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Abre tu archivo Excel, copia todas las celdas con encabezados incluidos y pégalas aquí.</p>
+            <textarea id="csvInput" placeholder="id_tur_turnos_usuarios,inicio turno,cedula..."></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-outline" onclick="closeModal('csvModal')">Cancelar</button>
+                <button class="btn" onclick="processCSVInput()">Procesar Datos</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GESTIÓN EN TIEMPO REAL (GTR) -->
+    <div class="modal" id="eventModal">
+        <div class="modal-content" style="width: 400px;">
+            <h2 style="font-size: 16px;" id="eventModalTitle">Modificar Evento</h2>
+            <p style="font-size: 12px; color: var(--text-muted);" id="eventModalSubtitle">Agente: ...</p>
+            
+            <input type="hidden" id="editAgentId">
+            <input type="hidden" id="editEventId">
+
+            <div class="form-group">
+                <label>Tipo de Evento</label>
+                <select id="editType">
+                    <option value="conexion">Conexión (Turno Principal)</option>
+                    <option value="almuerzo">Almuerzo</option>
+                    <option value="descanso">Descanso</option>
+                    <option value="novedad">Novedad GTR (Feedback, Daño, etc.)</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Hora Inicio</label>
+                    <input type="time" id="editStart">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Hora Fin</label>
+                    <input type="time" id="editEnd">
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                <button class="btn btn-outline" style="color: #ef4444; border-color: #ef4444;" id="btnDeleteEvent" onclick="deleteEvent()">Eliminar</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline" onclick="closeModal('eventModal')">Cancelar</button>
+                    <button class="btn" onclick="saveEvent()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================================
+        // DATOS Y ESTADO GLOBAL (GTR)
+        // ==========================================================
+        let globalAgents = [];
+        let filteredAgents = [];
+        let currentStatusFilter = null; // null, 'conexion', 'almuerzo', 'descanso', 'novedad'
+
+        const defaultCSV = `id_tur_turnos_usuarios,inicio turno,cedula,usuario red,pcrc,ceco,nombre asesor,nombre lider,inicio conexion,fin conexion,inicio desayuno,fin desayuno,inicio almuerzo,fin almuerzo,inicio cena,fin cena,inicio alimentacion1,fin alimentacion1,inicio alimentacion2,fin alimentacion2,descanso1,descanso2,descanso3,descanso4,capacitacion1,capacitacion2,capacitacion3,capacitacion4,Descanso,estado DP\n163354092,2026-05-21,1028662441,yenny.carreno,459612-4,459612,YENNY CARREÑO UPEGUI,NESTOR VALENCIA,09:00:00,17:00:00,,,13:15:00,13:45:00,,,10:30:00,10:45:00,15:45:00,16:00:00,,,,,,,,,Turno programado,Retiro\n163353728,2026-05-21,1012445050,yenyfer.amaya,459612-4,459612,YENYFER AMAYA SIERRA,NESTOR VALENCIA,09:00:00,17:00:00,,,12:30:00,13:00:00,,,10:15:00,10:30:00,15:00:00,15:15:00,,,,,,,,,Turno programado,Retiro\n163353826,2026-05-21,1014271228,andrea.pacheco,459612-1,459612,ANDREA PACHECO RODRIGUEZ,JUAN HERNANDEZ,08:00:00,16:00:00,,,12:00:00,13:00:00,,,10:00:00,10:15:00,14:00:00,14:15:00,,,,,,,,,Turno programado,En gestión\n163353721,2026-05-21,1010760232,carol.calducho,459612-1,459612,CAROL CALDUCHO WILCHES,JUAN HERNANDEZ,14:00:00,22:00:00,,,18:00:00,19:00:00,,,16:00:00,16:15:00,20:00:00,20:15:00,,,,,,,,,Turno programado,En gestión`;
+
+        // Utilidades de Tiempo
+        function timeToPixels(timeStr) {
+            if(!timeStr || timeStr.trim() === '') return null;
+            const parts = timeStr.split(':');
+            if(parts.length < 2) return null;
+            return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
+        }
+
+        function pixelsToTime(px) {
+            if(px === null || px === undefined) return '';
+            let h = Math.floor(px / 60);
+            let m = px % 60;
+            if(h >= 24) h -= 24; // Ajuste si pasa de medianoche
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+
+        function generateId() { return Math.random().toString(36).substr(2, 9); }
+
+        // Renderizado del encabezado base
+        function renderTimeHeader() {
+            const header = document.getElementById('time-header');
+            header.innerHTML = '';
+            for(let i=0; i<24; i++) {
+                const div = document.createElement('div');
+                div.className = 'time-slot';
+                div.textContent = `${i.toString().padStart(2, '0')}:00`;
+                header.appendChild(div);
+            }
+        }
+
+        // Procesamiento del CSV a Estado Global
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if(lines.length < 2) return [];
+            
+            const headers = lines[0].toLowerCase().split(',');
+            const iName = headers.indexOf('nombre asesor');
+            const iConIn = headers.indexOf('inicio conexion');
+            const iConOut = headers.indexOf('fin conexion');
+            const iAlmIn = headers.indexOf('inicio almuerzo');
+            const iAlmOut = headers.indexOf('fin almuerzo');
+            const iBreak1In = headers.indexOf('inicio alimentacion1');
+            const iBreak1Out = headers.indexOf('fin alimentacion1');
+            const iBreak2In = headers.indexOf('inicio alimentacion2');
+            const iBreak2Out = headers.indexOf('fin alimentacion2');
+
+            const agents = [];
+
+            for(let i=1; i<lines.length; i++) {
+                const cols = lines[i].split(',');
+                if(cols.length < Math.max(iName, iConOut)) continue;
+
+                const name = cols[iName].replace(/['"]/g, '').trim();
+                const shiftStart = cols[iConIn];
+                const shiftEnd = cols[iConOut];
+                if(!shiftStart || !shiftEnd) continue;
+
+                const agentData = {
+                    id: generateId(),
+                    name: name,
+                    shift: { type: 'conexion', start: timeToPixels(shiftStart), end: timeToPixels(shiftEnd) },
+                    events: []
+                };
+
+                if(agentData.shift.end < agentData.shift.start) agentData.shift.end += (24 * 60);
+
+                if(iAlmIn !== -1 && cols[iAlmIn]) agentData.events.push({ id: generateId(), type: 'almuerzo', start: timeToPixels(cols[iAlmIn]), end: timeToPixels(cols[iAlmOut]) });
+                if(iBreak1In !== -1 && cols[iBreak1In]) agentData.events.push({ id: generateId(), type: 'descanso', start: timeToPixels(cols[iBreak1In]), end: timeToPixels(cols[iBreak1Out]) });
+                if(iBreak2In !== -1 && cols[iBreak2In]) agentData.events.push({ id: generateId(), type: 'descanso', start: timeToPixels(cols[iBreak2In]), end: timeToPixels(cols[iBreak2Out]) });
+
+                agents.push(agentData);
+            }
+            return agents;
+        }
+
+        // Filtro GTR Integrado (Buscador + Estado Actual)
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const now = new Date();
+            const currentMins = (now.getHours() * 60) + now.getMinutes();
+
+            filteredAgents = globalAgents.filter(a => {
+                const matchesName = a.name.toLowerCase().includes(query);
+                if (!matchesName) return false;
+
+                if (currentStatusFilter) {
+                    let agentStatus = 'offline';
+                    if (a.shift.start <= currentMins && currentMins <= a.shift.end) {
+                        agentStatus = 'conexion';
+                    }
+                    
+                    a.events.forEach(ev => {
+                        let evEnd = ev.end;
+                        if(evEnd < ev.start) evEnd += (24*60); 
+                        if (ev.start <= currentMins && currentMins <= evEnd) {
+                            agentStatus = ev.type;
+                        }
+                    });
+                    
+                    return agentStatus === currentStatusFilter;
+                }
+                
+                return true;
+            });
+            renderGantt(filteredAgents);
+        }
+
+        function toggleStatusFilter(status) {
+            document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
+            
+            if (currentStatusFilter === status) {
+                currentStatusFilter = null;
+            } else {
+                currentStatusFilter = status;
+                document.getElementById(`badge-${status}`).classList.add('active');
+            }
+            applyFilters();
+        }
+
+        // Calcular Estadísticas en Vivo (KPIs)
+        function calculateLiveStats() {
+            const now = new Date();
+            const currentMins = (now.getHours() * 60) + now.getMinutes();
+            let counts = { conexion: 0, almuerzo: 0, descanso: 0, novedad: 0 };
+
+            globalAgents.forEach(a => {
+                let agentStatus = 'offline';
+                if (a.shift.start <= currentMins && currentMins <= a.shift.end) {
+                    agentStatus = 'conexion';
+                }
+                
+                a.events.forEach(ev => {
+                    let evEnd = ev.end;
+                    if(evEnd < ev.start) evEnd += (24*60);
+                    if (ev.start <= currentMins && currentMins <= evEnd) {
+                        agentStatus = ev.type;
+                    }
+                });
+
+                if (counts[agentStatus] !== undefined) {
+                    counts[agentStatus]++;
+                }
+            });
+
+            document.getElementById('stat-con').textContent = counts.conexion;
+            document.getElementById('stat-alm').textContent = counts.almuerzo;
+            document.getElementById('stat-des').textContent = counts.descanso;
+            document.getElementById('stat-nov').textContent = counts.novedad;
+        }
+
+        // Exportar a CSV (Para reportes GTR)
+        function exportCSV() {
+            let csvContent = "Agente,Tipo Evento,Hora Inicio,Hora Fin\n";
+            globalAgents.forEach(a => {
+                csvContent += `"${a.name}",Turno Base,${pixelsToTime(a.shift.start)},${pixelsToTime(a.shift.end)}\n`;
+                a.events.forEach(ev => {
+                    csvContent += `"${a.name}",${ev.type.toUpperCase()},${pixelsToTime(ev.start)},${pixelsToTime(ev.end)}\n`;
+                });
+            });
+
+            const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `GTR_Export_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Modo Oscuro
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('gtr-darkmode', isDark);
+            
+            const icon = document.getElementById('theme-icon');
+            if(isDark) {
+                icon.innerHTML = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
+            } else {
+                icon.innerHTML = '<path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8 8h-2v3h2v-3zm-7.45-3.91l1.41 1.41 1.79-1.79-1.41-1.41-1.79 1.79zM12 5.5c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5 6.5-2.91 6.5-6.5-2.91-6.5-6.5-6.5zm0 11c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>';
+            }
+        }
+
+        // Cargar preferencia de Modo Oscuro al inicio
+        if(localStorage.getItem('gtr-darkmode') === 'true') toggleDarkMode();
+
+        // Dibujar el diagrama con eventos editables
+        function renderGantt(agentsToRender) {
+            const namesContainer = document.getElementById('agent-names-container');
+            const blocksContainer = document.getElementById('gantt-blocks-container');
+            
+            namesContainer.innerHTML = '';
+            blocksContainer.innerHTML = '';
+            document.getElementById('total-agents').textContent = agentsToRender.length;
+
+            agentsToRender.forEach(agent => {
+                // Etiqueta del nombre (Izquierda) + Botón Agregar
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'agent-row-label';
+                nameDiv.innerHTML = `
+                    <span title="${agent.name}">${agent.name}</span>
+                    <button class="add-btn" title="Agregar Novedad GTR" onclick="openEventModal('${agent.id}', 'new')">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    </button>
+                `;
+                namesContainer.appendChild(nameDiv);
+
+                // Fila del Gantt (Derecha)
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'gantt-row';
+
+                // Turno Principal
+                if(agent.shift.start !== null && agent.shift.end !== null) {
+                    const shiftBlock = document.createElement('div');
+                    shiftBlock.className = 'shift-block b-conexion';
+                    shiftBlock.style.left = `${agent.shift.start}px`;
+                    shiftBlock.style.width = `${agent.shift.end - agent.shift.start}px`;
+                    shiftBlock.title = "Clic para editar turno";
+                    shiftBlock.onclick = () => openEventModal(agent.id, 'shift');
+                    rowDiv.appendChild(shiftBlock);
+                }
+
+                // Eventos Adicionales
+                agent.events.forEach(ev => {
+                    if(ev.start !== null && ev.end !== null) {
+                        const evBlock = document.createElement('div');
+                        evBlock.className = `shift-block b-${ev.type}`;
+                        evBlock.style.left = `${ev.start}px`;
+                        let width = ev.end - ev.start;
+                        if(width < 0) width += (24*60); 
+                        evBlock.style.width = `${width}px`;
+                        evBlock.title = `Clic para editar ${ev.type}`;
+                        evBlock.onclick = (e) => { e.stopPropagation(); openEventModal(agent.id, ev.id); };
+                        rowDiv.appendChild(evBlock);
+                    }
+                });
+                blocksContainer.appendChild(rowDiv);
+            });
+        }
+
+        // ==========================================================
+        // LÓGICA DE EDICIÓN Y GTR
+        // ==========================================================
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function openEventModal(agentId, eventId) {
+            const agent = globalAgents.find(a => a.id === agentId);
+            if(!agent) return;
+
+            document.getElementById('editAgentId').value = agent.id;
+            document.getElementById('editEventId').value = eventId;
+            document.getElementById('eventModalSubtitle').textContent = `Agente: ${agent.name}`;
+
+            const typeSelect = document.getElementById('editType');
+            const startInput = document.getElementById('editStart');
+            const endInput = document.getElementById('editEnd');
+            const btnDelete = document.getElementById('btnDeleteEvent');
+
+            if(eventId === 'new') {
+                document.getElementById('eventModalTitle').textContent = "Nueva Novedad GTR";
+                typeSelect.value = 'novedad';
+                startInput.value = '';
+                endInput.value = '';
+                btnDelete.style.display = 'none';
+                typeSelect.disabled = false;
+            } else if (eventId === 'shift') {
+                document.getElementById('eventModalTitle').textContent = "Editar Turno Base";
+                typeSelect.value = 'conexion';
+                startInput.value = pixelsToTime(agent.shift.start);
+                endInput.value = pixelsToTime(agent.shift.end);
+                btnDelete.style.display = 'none';
+                typeSelect.disabled = true; // El turno base no cambia de tipo
+            } else {
+                document.getElementById('eventModalTitle').textContent = "Editar Evento";
+                const ev = agent.events.find(e => e.id === eventId);
+                typeSelect.value = ev.type;
+                startInput.value = pixelsToTime(ev.start);
+                endInput.value = pixelsToTime(ev.end);
+                btnDelete.style.display = 'block';
+                typeSelect.disabled = false;
+            }
+            openModal('eventModal');
+        }
+
+        function saveEvent() {
+            const agentId = document.getElementById('editAgentId').value;
+            const eventId = document.getElementById('editEventId').value;
+            const type = document.getElementById('editType').value;
+            let start = timeToPixels(document.getElementById('editStart').value);
+            let end = timeToPixels(document.getElementById('editEnd').value);
+
+            if(start === null || end === null) { alert("Completa las horas correctamente."); return; }
+            if(end < start) end += (24*60); // Ajuste cruce de medianoche
+
+            const agent = globalAgents.find(a => a.id === agentId);
+            
+            if(eventId === 'new') {
+                agent.events.push({ id: generateId(), type: type, start: start, end: end });
+            } else if (eventId === 'shift') {
+                agent.shift.start = start;
+                agent.shift.end = end;
+            } else {
+                const ev = agent.events.find(e => e.id === eventId);
+                ev.type = type;
+                ev.start = start;
+                ev.end = end;
+            }
+
+            closeModal('eventModal');
+            applyFilters(); // Refresca con el filtro actual y recalcula
+            calculateLiveStats();
+        }
+
+        function deleteEvent() {
+            const agentId = document.getElementById('editAgentId').value;
+            const eventId = document.getElementById('editEventId').value;
+            
+            const agent = globalAgents.find(a => a.id === agentId);
+            agent.events = agent.events.filter(e => e.id !== eventId);
+            
+            closeModal('eventModal');
+            applyFilters();
+            calculateLiveStats();
+        }
+
+        function processCSVInput() {
+            const text = document.getElementById('csvInput').value;
+            if(text.trim() === '') { alert("Por favor pega los datos primero."); return; }
+            globalAgents = parseCSV(text);
+            filteredAgents = [...globalAgents];
+            document.getElementById('searchInput').value = '';
+            currentStatusFilter = null;
+            document.querySelectorAll('.stat-badge').forEach(el => el.classList.remove('active'));
+            renderGantt(filteredAgents);
+            closeModal('csvModal');
+            calculateLiveStats();
+            scrollToNow();
+        }
+
+        // ==========================================================
+        // LÓGICA DE TIEMPO ACTUAL
+        // ==========================================================
+        function updateCurrentTime() {
+            const now = new Date();
+            const minutes = (now.getHours() * 60) + now.getMinutes();
+            const nowLine = document.getElementById('now-line');
+            nowLine.style.left = `${minutes}px`;
+
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('date-display').textContent = now.toLocaleDateString('es-ES', options).toUpperCase();
+            
+            calculateLiveStats();
+            if(currentStatusFilter) applyFilters(); // Mantiene el filtro de estado actualizado
+        }
+
+        function scrollToNow() {
+            const now = new Date();
+            const minutes = (now.getHours() * 60) + now.getMinutes();
+            const scrollArea = document.getElementById('gantt-scroll-area');
+            scrollArea.scrollTo({ left: minutes - 400, behavior: 'smooth' });
+        }
+
+        // Inicialización
+        renderTimeHeader();
+        globalAgents = parseCSV(defaultCSV);
+        filteredAgents = [...globalAgents];
+        renderGantt(filteredAgents);
+        updateCurrentTime();
+        
+        setInterval(updateCurrentTime, 60000);
+        setTimeout(scrollToNow, 500);
+
+    </script>
+</body>
+</html>
